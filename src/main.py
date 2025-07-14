@@ -1,5 +1,5 @@
 import pickle
-import colorama
+from colorama import Fore, Style, init
 
 def save_data(book, filename="addressbook.pkl"):
     with open(filename, "wb") as f:
@@ -257,11 +257,37 @@ def upcoming_birthdays(book: AddressBook):
         print(f"{record.name.value}: {birthday.strftime('%d.%m')}") #  Show only day and month
 
 def main():
+    init(autoreset=True) # Initialize colorama for colored output
+    cobra = r"""
+                /^\/^\
+                _|__|  O|
+        \/     /~     \_/ \
+        \____|__________/  \
+                \_______      \
+                        `\     \                 \
+                        |     |                  \
+                        /      /                    \
+                        /     /                       \\
+                    /      /                         \ \
+                    /     /                            \  \
+                /     /             _----_            \   \
+                /     /           _-~      ~-_         |   |
+                (      (        _-~    _--_    ~-_     _/   |
+                \      ~-____-~    _-~    ~-_    ~-_-~    /
+                    ~-_           _-~          ~-_       _-~
+                    ~--______-~                ~-___-~
+        """
+
+    print(f"{Fore.GREEN}{Style.BRIGHT}{cobra}")
     # book = AddressBook()
     book = load_data()
-    print("Welcome to the assistant bot!")
+
+    print(" "*15, f" {Fore.GREEN}{Style.BRIGHT}Welcome to the assistant bot!")
+    print(" ")
+    print(" "*15, f" {Fore.GREEN}{Style.BRIGHT}Type '{Fore.RED}help{Fore.GREEN}' for a list of commands.")
+    print(" ")
     while True:
-        user_input = input("Enter a command: ")
+        user_input = input(f"{Fore.BLUE}Enter a command: ")
         if not user_input.strip():
             print("Please enter a command.")
             continue
