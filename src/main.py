@@ -259,6 +259,7 @@ def upcoming_birthdays(book: AddressBook):
 def main():
     init(autoreset=True) # Initialize colorama for colored output
     cobra = r"""
+
                 /^\/^\
                 _|__|  O|
         \/     /~     \_/ \
@@ -277,12 +278,11 @@ def main():
                     ~-_           _-~          ~-_       _-~
                     ~--______-~                ~-___-~
         """
-
     print(f"{Fore.GREEN}{Style.BRIGHT}{cobra}")
     # book = AddressBook()
     book = load_data()
 
-    print(" "*15, f" {Fore.GREEN}{Style.BRIGHT}Welcome to the assistant bot!")
+    print(" "*15, f" {Fore.GREEN}{Style.BRIGHT}Welcome to the Assistant Bot!")
     print(" ")
     print(" "*15, f" {Fore.GREEN}{Style.BRIGHT}Type '{Fore.RED}help{Fore.GREEN}' for a list of commands.")
     print(" ")
