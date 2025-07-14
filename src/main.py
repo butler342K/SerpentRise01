@@ -1,5 +1,6 @@
 import pickle
 from colorama import Fore, Style, init
+import os
 
 def save_data(book, filename="addressbook.pkl"):
     with open(filename, "wb") as f:
@@ -256,8 +257,12 @@ def upcoming_birthdays(book: AddressBook):
         birthday = record.birthday.value
         print(f"{record.name.value}: {birthday.strftime('%d.%m')}") #  Show only day and month
 
-def main():
-    init(autoreset=True) # Initialize colorama for colored output
+def print_welcome():
+    if os.name == 'nt':
+        os.system('cls')
+    else:
+        # For Unix-like systems (Linux, macOS)
+        os.system('clear')
     cobra = r"""
 
                 /^\/^\
@@ -279,15 +284,20 @@ def main():
                     ~--______-~                ~-___-~
         """
     print(f"{Fore.GREEN}{Style.BRIGHT}{cobra}")
-    # book = AddressBook()
-    book = load_data()
-
-    print(" "*15, f" {Fore.GREEN}{Style.BRIGHT}Welcome to the Assistant Bot!")
+    print(" "*18, f" {Fore.GREEN}{Style.BRIGHT}Welcome to the Assistant Bot!")
     print(" ")
     print(" "*15, f" {Fore.GREEN}{Style.BRIGHT}Type '{Fore.RED}help{Fore.GREEN}' for a list of commands.")
     print(" ")
+
+# Assistant Bot for Address Book Management
+def main():
+    init(autoreset=True) # Initialize colorama for colored output
+    print_welcome() 
+    # Load the address book data from file or create a new one
+    book = load_data()
+
     while True:
-        user_input = input(f"{Fore.BLUE}Enter a command: ")
+        user_input = input(f"{Fore.BLUE}Enter a command >>> {Fore.WHITE}")
         if not user_input.strip():
             print("Please enter a command.")
             continue
@@ -320,6 +330,11 @@ def main():
         elif command == "load":
             book = book.load(args)
             print("Data loaded.")
+        elif command == "help":
+            pass
+        elif command == "about":
+            print(f"{Fore.LIGHTBLACK_EX}Produced by Serpent Rise Team©")
+            #TODO
         else:
             print("Invalid command.")
 
