@@ -107,8 +107,8 @@ class AddressBook(UserDict):
             del self.data[name]
         else:
             raise KeyError(f"Contact '{name}' not found.")   
-    def get_upcoming_birthday(self):
-        period_days = 7  # period for upcoming birthdays
+    def get_upcoming_birthday(self, period_days=7):
+        self.period_days = period_days # period for upcoming birthdays
         today = datetime.today()
         upcoming_birthdays = []
 
@@ -123,12 +123,12 @@ class AddressBook(UserDict):
             # Calculate the next birthday
             birthday = user.birthday.value
             birthday_this_year = birthday.replace(year=today.year)  
-            # if birthday was before today, set it to next year
+            # if birthday was before today, set it to next yeara
             if birthday_this_year < today:
                 birthday_this_year = birthday_this_year.replace(year=today.year + 1)
 
             days_until_birthday = (birthday_this_year - today).days
-            if days_until_birthday <= period_days:
+            if days_until_birthday <= self.period_days:
                 if datetime.weekday(birthday_this_year) == 5:  # if birthday is on Saturday, move it to Monday
                     birthday_this_year += timedelta(days=2)
                 elif datetime.weekday(birthday_this_year) == 6:  # if birthday is on Sunday, move it to Monday
@@ -266,8 +266,11 @@ def contact_birthday(args, book: AddressBook):
     return f"{record.name.value}'s birthday is on {birthday.strftime('%d.%m.%Y')}."
 
 @input_error
-def upcoming_birthdays(book: AddressBook):
-    upcoming_birthdays = book.get_upcoming_birthday()
+def upcoming_birthdays(args, book: AddressBook):
+    days = 7  # Default period for upcoming birthdays
+    if len(args) > 0:
+        days = int(args[0])
+    upcoming_birthdays = book.get_upcoming_birthday(days)
     if not upcoming_birthdays:
         print("No upcoming birthdays.")
     print("🎉 Upcoming birthdays: 🎉")
@@ -343,7 +346,7 @@ def main():
         elif command == "show-birthday":
             print(contact_birthday(args, book))
         elif command == "birthdays":
-            upcoming_birthdays(book)
+            upcoming_birthdays(args, book)
         elif command == "save":
             book.save(args)
             print("Data saved.")
