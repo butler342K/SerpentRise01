@@ -111,8 +111,12 @@ class Record:
         self.birthday = Birthday(birthday)
     def __str__(self):
         phones_str = '; '.join(p.value for p in self.phones)
-        email_str = f", email: {self.email.value}" if self.email else ""
-        birthday_str = f", birthday: {self.birthday.value.strftime('%d.%m.%Y')}" if self.birthday else ""
+        email_str = ""
+        if hasattr(self, 'email') and self.email:
+            email_str = f", email: {self.email.value}"
+        birthday_str = ""
+        if self.birthday:
+            birthday_str = f", birthday: {self.birthday.value.strftime('%d.%m.%Y')}"
         return f"Contact name: {self.name.value}, phones: {phones_str}{email_str}{birthday_str}"
         # == show full information about contact ==   
         # return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}, Birthday: {self.birthday.value.strftime('%d.%m.%Y') if self.birthday else 'Not set'}"
