@@ -1,6 +1,7 @@
 import pickle
 from colorama import Fore, Style, init
 import os
+import prompt
 
 def save_data(book, filename="addressbook.pkl"):
     with open(filename, "wb") as f:
@@ -59,6 +60,9 @@ class Record:
         self.phones = []
         self.birthday = None
     def add_phone(self, phone):
+        if self.find_phone(phone):
+            print(f"Phone {phone} already exists for {self.name.value}. Not adding.")
+            return
         self.phones.append(Phone(phone))
     def remove_phone(self, phone):
         phone_to_remove = Phone(phone)
@@ -134,7 +138,9 @@ class AddressBook(UserDict):
         return upcoming_birthdays
     
     def save(self, args):
-        filename, *_ = args
+        filename = None
+        if len(args) > 0:
+            filename, *_ = args[0]
         if not filename:
             filename = "addressbook.pkl"
         with open(filename, "wb") as f:
@@ -182,21 +188,33 @@ def parse_input(user_input):
     cmd = cmd.strip().lower()
     return cmd, *args
 
-
-
-
 @input_error
 def add_contact(args, book: AddressBook):
-    name, phone, *_ = args
+    name, *_ = args
     record = book.find(name)
     message = "Contact updated."
     if record is None:
         record = Record(name)
         book.add_record(record)
         message = "Contact added."
-    if phone:
-        record.add_phone(phone)
+    if len(args) > 1:
+        for phone in args[1:]:
+            record.add_phone(phone)
     return message
+
+@input_error
+def delete_contact(args, book: AddressBook):
+    name = None
+    if len(args) == 0:
+        return "Please provide a name to delete."
+    name, *_ = args
+    if not name:
+        return "Please provide a name to delete."
+    try:
+        book.delete(name)
+        return f"Contact '{name}' deleted."
+    except KeyError as e:
+        return str(e)
 
 @input_error
 def change_contact(args, book: AddressBook):
@@ -297,23 +315,25 @@ def main():
     book = load_data()
 
     while True:
-        user_input = input(f"{Fore.BLUE}Enter a command >>> {Fore.WHITE}")
+        user_input = prompt.session.prompt(f"Enter a command >>> ", completer=prompt.completer, complete_while_typing=False)
         if not user_input.strip():
             print("Please enter a command.")
             continue
         command, *args = parse_input(user_input)
 
-        if command in ["close", "exit"]:
+        if command in ["close", "exit", "quit"]:
             save_data(book)
             print("Data saved. Exiting the assistant bot.")
             print("Good bye!")
             break
         elif command == "hello":
             print("How can I help you?")
-        elif command == "add":
+        elif command == "add-contact":
             print(add_contact(args, book))
-        elif command == "change":
+        elif command == "change-contact":
             print(change_contact(args, book))
+        elif command == "delete-contact":
+            print(delete_contact(args, book))
         elif command == "phone":
             print(show_phone(args, book))
         elif command == "all":
