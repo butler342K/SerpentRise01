@@ -65,12 +65,25 @@ class Birthday(Field):
             else:
                 raise ValueError(str(e))
 
+class Address(Field):
+    def __init__(self, value):
+        if not value.strip():
+            self.value = None
+            return
+        value = value.strip()
+        if len(value) < 5:
+            raise ValueError("Address is too short.")
+        if re.search(r"[<>@#$%^&*]", value):
+            raise ValueError("Address contains invalid characters.")
+        self.value = value
+
 class Record:
     def __init__(self, name):
         self.name = Name(name)
         self.phones = []
         self.email = None
         self.birthday = None
+        self.address = None
     def add_phone(self, phone):
         if self.find_phone(phone):
             print(f"Phone {phone} already exists for {self.name.value}. Not adding.")
@@ -102,11 +115,22 @@ class Record:
         if not self.email:
             raise ValueError("Email is not set. Please add an email first.")
         self.email = Email(new_email)
-
     def remove_email(self):
         if not self.email:
             raise ValueError("Email is not set.")
         self.email = None
+    def add_address(self, address):
+        self.address = Address(address)
+    def edit_address(self, new_address):
+        if not self.address:
+            raise ValueError("Address is not set. Please add an address first.")
+        self.address = Address(new_address)
+    def remove_address(self):
+        if not self.address:
+            raise ValueError("Address is not set.")
+        self.address = None
+    def find_address(self):
+        return self.address.value if self.address else None
     def add_birthday(self, birthday):
         self.birthday = Birthday(birthday)
     def __str__(self):
@@ -117,7 +141,11 @@ class Record:
         birthday_str = ""
         if self.birthday:
             birthday_str = f", birthday: {self.birthday.value.strftime('%d.%m.%Y')}"
-        return f"Contact name: {self.name.value}, phones: {phones_str}{email_str}{birthday_str}"
+        address_str = ""
+        if hasattr(self, 'address') and self.address:
+            address_str = f", address: {self.address.value}"
+        
+        return f"Contact name: {self.name.value}, phones: {phones_str}{email_str}{birthday_str}{address_str}"
         # == show full information about contact ==   
         # return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}, Birthday: {self.birthday.value.strftime('%d.%m.%Y') if self.birthday else 'Not set'}"
 
@@ -212,6 +240,10 @@ def input_error(func):
             add-birthday <name> <DD.MM.YYYY>
             show-birthday <name>
             birthdays
+            add-address <name> <address>
+            show-address <name>
+            edit-address <name> <new_address>
+            remove-address <name>
             all"""
         except IndexError: # not used now
             return "Invalid input. Format: phone <name>."
@@ -354,6 +386,56 @@ def upcoming_birthdays(args, book: AddressBook):
         print(f"{record.name.value}: {birthday.strftime('%d.%m')}") #  Show only day and month
 
 @input_error
+def handle_add_address(args, book):
+    if len(args) < 2:
+        return "Please provide a name and address."
+
+    name = args[0]
+    address = ' '.join(args[1:])  # <--- join remaining parts into the address string
+
+    record = book.find(name)
+    if record is None:
+        return "Contact not found."
+
+    record.add_address(address)
+    return "Address added."
+
+@input_error
+def handle_show_address(args, book):
+    name = args[0]
+    record = book.find(name)
+    if record is None:
+        return "Contact not found."
+    if record.address is None:
+        return "Address is not set."
+    return f"{name}'s address: {record.address.value}"
+
+@input_error
+def handle_edit_address(args, book):
+    if len(args) < 2:
+        return "Please provide a name and new address."
+
+    name = args[0]
+    new_address = ' '.join(args[1:])  # join the rest
+
+    record = book.find(name)
+    if record is None:
+        return "Contact not found."
+
+    record.edit_address(new_address)
+    return "Address updated."
+
+@input_error
+def handle_remove_address(args, book):
+    name = args[0]
+    record = book.find(name)
+    if record is None:
+        return "Contact not found."
+    record.remove_address()
+    return "Address removed."
+
+
+@input_error
 def search_contacts(args, book: AddressBook):
     if not args:
         return "Please provide a search keyword."
@@ -370,6 +452,8 @@ def search_contacts(args, book: AddressBook):
                 results.append(str(record))
                 break
         if hasattr(record, 'email') and record.email and keyword in record.email.value.lower():
+            results.append(str(record))
+        if hasattr(record, 'address') and record.address and keyword in record.address.value.lower():
             results.append(str(record))
     
     if results:
@@ -459,6 +543,14 @@ def main():
             print(contact_birthday(args, book))
         elif command == "birthdays":
             upcoming_birthdays(args, book)
+        elif command == "add-address":
+            print(handle_add_address(args, book))
+        elif command == "show-address":
+            print(handle_show_address(args, book))
+        elif command == "edit-address":
+            print(handle_edit_address(args, book))
+        elif command == "remove-address":
+            print(handle_remove_address(args, book))
         elif command == "save":
             book.save(args)
             print("Data saved.")
