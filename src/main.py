@@ -278,6 +278,30 @@ def upcoming_birthdays(args, book: AddressBook):
         birthday = record.birthday.value
         print(f"{record.name.value}: {birthday.strftime('%d.%m')}") #  Show only day and month
 
+@input_error
+def search_contacts(args, book: AddressBook):
+    if not args:
+        return "Please provide a search keyword."
+
+    keyword = args[0].lower()
+    results = []
+
+    for record in book.data.values():
+        if keyword in record.name.value.lower():
+            results.append(str(record))
+            continue
+        for phone in record.phones:
+            if keyword in phone.value:
+                results.append(str(record))
+                break
+
+    if results:
+        return "\n".join(results)
+    else:
+        return "No matching contacts found."
+
+
+
 def print_welcome():
     if os.name == 'nt':
         os.system('cls')
@@ -337,6 +361,8 @@ def main():
             print(change_contact(args, book))
         elif command == "delete-contact":
             print(delete_contact(args, book))
+        elif command == "search":
+            print(search_contacts(args, book))
         elif command == "phone":
             print(show_phone(args, book))
         elif command == "all":

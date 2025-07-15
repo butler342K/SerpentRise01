@@ -13,6 +13,7 @@ commands = ['add-contact',
             'birthdays', 
             'all', 
             'save',
+            'search'
             'load',
             'close',
             'exit', 
