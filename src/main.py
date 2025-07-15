@@ -2,6 +2,7 @@ import pickle
 from colorama import Fore, Style, init
 import os
 import prompt
+import re
 
 def save_data(book, filename="addressbook.pkl"):
     with open(filename, "wb") as f:
@@ -40,6 +41,16 @@ class Phone(Field):
         if len(value) != 10:
             raise ValueError("Phone number must be 10 digits long.")
 
+class Email(Field):
+    def __init__(self, email):
+        if not isinstance(email, str) or not email.strip():
+            raise ValueError("Email must be a non-empty string.")
+        email = email.strip()
+        pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+        if not re.match(pattern, email):
+            raise ValueError("Invalid email format.")
+        self.value = email
+
 from datetime import datetime, date, timedelta        
 
 class Birthday(Field):
@@ -58,6 +69,7 @@ class Record:
     def __init__(self, name):
         self.name = Name(name)
         self.phones = []
+        self.email = None
         self.birthday = None
     def add_phone(self, phone):
         if self.find_phone(phone):
@@ -80,10 +92,32 @@ class Record:
                 p.value = Phone(new_phone).value
                 return
         raise ValueError("Phone number not found.")
+    def add_email(self, email):
+        self.email = Email(email)
+
+    def find_email(self):
+        return self.email.value if self.email else None
+
+    def edit_email(self, new_email):
+        if not self.email:
+            raise ValueError("Email is not set. Please add an email first.")
+        self.email = Email(new_email)
+
+    def remove_email(self):
+        if not self.email:
+            raise ValueError("Email is not set.")
+        self.email = None
     def add_birthday(self, birthday):
         self.birthday = Birthday(birthday)
     def __str__(self):
-        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}"
+        phones_str = '; '.join(p.value for p in self.phones)
+        email_str = ""
+        if hasattr(self, 'email') and self.email:
+            email_str = f", email: {self.email.value}"
+        birthday_str = ""
+        if self.birthday:
+            birthday_str = f", birthday: {self.birthday.value.strftime('%d.%m.%Y')}"
+        return f"Contact name: {self.name.value}, phones: {phones_str}{email_str}{birthday_str}"
         # == show full information about contact ==   
         # return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}, Birthday: {self.birthday.value.strftime('%d.%m.%Y') if self.birthday else 'Not set'}"
 
@@ -171,6 +205,10 @@ def input_error(func):
             add <name> <phone_number>
             change <name> <old_phone> <new_phone>
             phone <name>
+            add-email <name> <email>
+            show-email <name>
+            edit-email <name> <new_email>
+            remove-email <name>
             add-birthday <name> <DD.MM.YYYY>
             show-birthday <name>
             birthdays
@@ -246,6 +284,43 @@ def show_all(book: AddressBook):
         print(record)  
 
 @input_error
+def handle_add_email(args, book):
+    name, email = args
+    record = book.find(name)
+    if record is None:
+        return "Contact not found."
+    record.add_email(email)
+    return "Email added."
+
+@input_error
+def handle_show_email(args, book):
+    name = args[0]
+    record = book.find(name)
+    if record is None:
+        return "Contact not found."
+    if record.email is None:
+        return "Email is not set."
+    return f"{name}'s email: {record.email.value}"
+
+@input_error
+def handle_edit_email(args, book):
+    name, new_email = args
+    record = book.find(name)
+    if record is None:
+        return "Contact not found."
+    record.edit_email(new_email)
+    return "Email updated."
+
+@input_error
+def handle_remove_email(args, book):
+    name = args[0]
+    record = book.find(name)
+    if record is None:
+        return "Contact not found."
+    record.remove_email()
+    return "Email removed."
+
+@input_error
 def add_birthday(args, book: AddressBook):
     name, birthday = args
     record = book.find(name)
@@ -294,11 +369,14 @@ def search_contacts(args, book: AddressBook):
             if keyword in phone.value:
                 results.append(str(record))
                 break
-
+        if hasattr(record, 'email') and record.email and keyword in record.email.value.lower():
+            results.append(str(record))
+    
     if results:
         return "\n".join(results)
     else:
         return "No matching contacts found."
+
 
 
 
@@ -367,6 +445,14 @@ def main():
             print(show_phone(args, book))
         elif command == "all":
             show_all(book)
+        elif command == "add-email":
+            print(handle_add_email(args, book))
+        elif command == "show-email":
+            print(handle_show_email(args, book))
+        elif command == "edit-email":
+            print(handle_edit_email(args, book))
+        elif command == "remove-email":
+            print(handle_remove_email(args, book))
         elif command == "add-birthday":
             print(add_birthday(args, book))
         elif command == "show-birthday":
