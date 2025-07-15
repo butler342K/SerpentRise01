@@ -2,7 +2,9 @@ import pickle
 from colorama import Fore, Style, init
 import os
 import prompt
+from note import NoteBook
 import re
+
 
 def save_data(book, filename="addressbook.pkl"):
     with open(filename, "wb") as f:
@@ -415,12 +417,13 @@ def print_welcome():
 # Assistant Bot for Address Book Management
 def main():
     init(autoreset=True) # Initialize colorama for colored output
-    print_welcome() 
+    print_welcome()
     # Load the address book data from file or create a new one
     book = load_data()
+    notes = NoteBook()
 
     while True:
-        user_input = prompt.session.prompt(f"Enter a command >>> ", completer=prompt.completer, complete_while_typing=False)
+        user_input = prompt.session.prompt("Enter a command >>> ", completer=prompt.completer, complete_while_typing=False)
         if not user_input.strip():
             print("Please enter a command.")
             continue
@@ -465,16 +468,127 @@ def main():
         elif command == "load":
             book = book.load(args)
             print("Data loaded.")
+        # --- Note commands ---
+        elif command == "add-note":
+            if len(args) < 2:
+                print("Usage: add-note <contact_name> <text>")
+            else:
+                contact_name = args[0]
+                text = ' '.join(args[1:])
+                note = notes.add_note(contact_name, text)
+                print(f"Note added for {contact_name}: {note}")
+        elif command == "list-notes":
+            if not args:
+                print("Usage: list-notes <contact_name>")
+            else:
+                contact_name = args[0]
+                all_notes = notes.list_notes(contact_name)
+                if not all_notes:
+                    print(f"No notes for {contact_name}.")
+                else:
+                    print(f"Notes for {contact_name}:")
+                    for idx, note in enumerate(all_notes, 1):
+                        print(f"{idx}. {note}")
+        elif command == "search-note":
+            if len(args) < 2:
+                print("Usage: search-note <contact_name> <keyword>")
+            else:
+                contact_name = args[0]
+                keyword = ' '.join(args[1:])
+                found = notes.search_notes(contact_name, keyword)
+                if not found:
+                    print(f"No notes found for {contact_name} with keyword '{keyword}'.")
+                else:
+                    print(f"Found notes for {contact_name}:")
+                    for idx, note in enumerate(found, 1):
+                        print(f"{idx}. {note}")
+        elif command == "edit-note":
+            if len(args) < 3:
+                print("Usage: edit-note <contact_name> <number> <new_text>")
+            else:
+                contact_name = args[0]
+                try:
+                    idx = int(args[1]) - 1
+                    new_text = ' '.join(args[2:])
+                    if notes.edit_note(contact_name, idx, new_text):
+                        print("Note updated.")
+                    else:
+                        print("Note not found.")
+                except ValueError:
+                    print("Invalid note number.")
+        elif command == "delete-note":
+            if len(args) < 2:
+                print("Usage: delete-note <contact_name> <number>")
+            else:
+                contact_name = args[0]
+                try:
+                    idx = int(args[1]) - 1
+                    if notes.delete_note(contact_name, idx):
+                        print("Note deleted.")
+                    else:
+                        print("Note not found.")
+                except ValueError:
+                    print("Invalid note number.")
+        # --- End note commands ---
         elif command == "help":
-            pass
+            print_help()
         elif command == "about":
             print(f"{Fore.LIGHTBLACK_EX}Produced by Serpent Rise Team©")
             #TODO
         else:
             print("Invalid command.")
 
+def print_help():
+    print(f"{Fore.CYAN}{Style.BRIGHT}=== Assistant Bot Help ==={Style.RESET_ALL}\n")
+    commands = [
+        ("hello", "Greet the assistant"),
+        ("add-contact <name> [<phone1>] [<phone2>] ...", "Add a new contact. Name is required, phones are optional. You can add multiple phones at once."),
+        ("change-contact <name> <old_phone> <new_phone>", "Change a contact's phone number"),
+        ("delete-contact <name>", "Delete a contact"),
+        ("phone <name>", "Show contact info"),
+        ("all", "Show all contacts"),
+        ("add-birthday <name> <DD.MM.YYYY>", "Add birthday to contact"),
+        ("show-birthday <name>", "Show contact's birthday"),
+        ("birthdays [days]", "Show upcoming birthdays"),
+        ("save [filename]", "Save address book"),
+        ("load [filename]", "Load address book"),
+        ("add-note <contact_name> <text>", "Add a new note for contact"),
+        ("list-notes <contact_name>", "Show all notes for contact"),
+        ("search-note <contact_name> <keyword>", "Search notes for contact by keyword"),
+        ("edit-note <contact_name> <number> <new_text>", "Edit note for contact by number"),
+        ("delete-note <contact_name> <number>", "Delete note for contact by number"),
+        ("about", "Show info about the app"),
+        ("exit | close | quit", "Exit the assistant"),
+        ("help", "Show this help message")
+    ]
+    pad = 50
+    for cmd, desc in commands:
+        parts = []
+        i = 0
+        while i < len(cmd):
+            if cmd[i] == '<':
+                end = cmd.find('>', i)
+                if end != -1:
+                    parts.append(Fore.CYAN + Style.BRIGHT + cmd[i:end+1] + Style.RESET_ALL)
+                    i = end + 1
+                    continue
+            if cmd[i] == '[':
+                end = cmd.find(']', i)
+                if end != -1:
+                    parts.append(Fore.CYAN + Style.BRIGHT + cmd[i:end+1] + Style.RESET_ALL)
+                    i = end + 1
+                    continue
+            parts.append(Fore.GREEN + cmd[i] + Style.RESET_ALL)
+            i += 1
+        colored_cmd = ''.join(parts)
+        real_len = len(cmd)
+        spaces = ' ' * max(2, pad - real_len)
+        print(f"{colored_cmd}{spaces}{Fore.YELLOW}- {desc}{Style.RESET_ALL}")
+    print(f"\n{Fore.CYAN}{Style.BRIGHT}========================={Style.RESET_ALL}\n")
+
 if __name__ == "__main__":
     main()
+
 
 
 
