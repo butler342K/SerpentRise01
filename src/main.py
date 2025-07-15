@@ -2,6 +2,7 @@ import pickle
 from colorama import Fore, Style, init
 import os
 import prompt
+from note import NoteBook
 
 def save_data(book, filename="addressbook.pkl"):
     with open(filename, "wb") as f:
@@ -337,9 +338,10 @@ def print_welcome():
 # Assistant Bot for Address Book Management
 def main():
     init(autoreset=True) # Initialize colorama for colored output
-    print_welcome() 
+    print_welcome()
     # Load the address book data from file or create a new one
     book = load_data()
+    notes = NoteBook()
 
     while True:
         user_input = prompt.session.prompt("Enter a command >>> ", completer=prompt.completer, complete_while_typing=False)
@@ -379,6 +381,68 @@ def main():
         elif command == "load":
             book = book.load(args)
             print("Data loaded.")
+        # --- Note commands ---
+        elif command == "add-note":
+            if len(args) < 2:
+                print("Usage: add-note <contact_name> <text>")
+            else:
+                contact_name = args[0]
+                text = ' '.join(args[1:])
+                note = notes.add_note(contact_name, text)
+                print(f"Note added for {contact_name}: {note}")
+        elif command == "list-notes":
+            if not args:
+                print("Usage: list-notes <contact_name>")
+            else:
+                contact_name = args[0]
+                all_notes = notes.list_notes(contact_name)
+                if not all_notes:
+                    print(f"No notes for {contact_name}.")
+                else:
+                    print(f"Notes for {contact_name}:")
+                    for idx, note in enumerate(all_notes, 1):
+                        print(f"{idx}. {note}")
+        elif command == "search-note":
+            if len(args) < 2:
+                print("Usage: search-note <contact_name> <keyword>")
+            else:
+                contact_name = args[0]
+                keyword = ' '.join(args[1:])
+                found = notes.search_notes(contact_name, keyword)
+                if not found:
+                    print(f"No notes found for {contact_name} with keyword '{keyword}'.")
+                else:
+                    print(f"Found notes for {contact_name}:")
+                    for idx, note in enumerate(found, 1):
+                        print(f"{idx}. {note}")
+        elif command == "edit-note":
+            if len(args) < 3:
+                print("Usage: edit-note <contact_name> <number> <new_text>")
+            else:
+                contact_name = args[0]
+                try:
+                    idx = int(args[1]) - 1
+                    new_text = ' '.join(args[2:])
+                    if notes.edit_note(contact_name, idx, new_text):
+                        print("Note updated.")
+                    else:
+                        print("Note not found.")
+                except ValueError:
+                    print("Invalid note number.")
+        elif command == "delete-note":
+            if len(args) < 2:
+                print("Usage: delete-note <contact_name> <number>")
+            else:
+                contact_name = args[0]
+                try:
+                    idx = int(args[1]) - 1
+                    if notes.delete_note(contact_name, idx):
+                        print("Note deleted.")
+                    else:
+                        print("Note not found.")
+                except ValueError:
+                    print("Invalid note number.")
+        # --- End note commands ---
         elif command == "help":
             print_help()
         elif command == "about":
@@ -401,6 +465,11 @@ def print_help():
         ("birthdays [days]", "Show upcoming birthdays"),
         ("save [filename]", "Save address book"),
         ("load [filename]", "Load address book"),
+        ("add-note <contact_name> <text>", "Add a new note for contact"),
+        ("list-notes <contact_name>", "Show all notes for contact"),
+        ("search-note <contact_name> <keyword>", "Search notes for contact by keyword"),
+        ("edit-note <contact_name> <number> <new_text>", "Edit note for contact by number"),
+        ("delete-note <contact_name> <number>", "Delete note for contact by number"),
         ("about", "Show info about the app"),
         ("exit | close | quit", "Exit the assistant"),
         ("help", "Show this help message")
