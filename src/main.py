@@ -354,12 +354,48 @@ def main():
             book = book.load(args)
             print("Data loaded.")
         elif command == "help":
-            pass
+            print_help()
         elif command == "about":
             print(f"{Fore.LIGHTBLACK_EX}Produced by Serpent Rise Team©")
             #TODO
         else:
             print("Invalid command.")
+
+
+def print_help():
+    print(f"{Fore.CYAN}{Style.BRIGHT}=== Assistant Bot Help ==={Style.RESET_ALL}\n")
+    commands = [
+        ("hello", "Greet the assistant"),
+    ("add-contact <name> <phone>", "Add a new contact"),
+    ("change-contact <name> <old_phone> <new_phone>", "Change a contact's phone number"),
+    ("delete-contact <name>", "Delete a contact"),
+    ("phone <name>", "Show contact info"),
+    ("all", "Show all contacts"),
+    ("add-birthday <name> <DD.MM.YYYY>", "Add birthday to contact"),
+    ("show-birthday <name>", "Show contact's birthday"),
+    ("birthdays [days]", "Show upcoming birthdays"),
+    ("save [filename]", "Save address book"),
+    ("load [filename]", "Load address book"),
+    ("about", "Show info about the app"),
+    ("exit | close | quit", "Exit the assistant"),
+    ("help", "Show this help message")
+    ]
+    import re
+    param_color = Fore.CYAN + Style.BRIGHT
+    def highlight_params(cmd):
+        cmd = re.sub(r"(<[^>]+>)", param_color + r"\1" + Fore.GREEN + Style.NORMAL, cmd)
+        cmd = re.sub(r"(\[[^\]]+\])", param_color + r"\1" + Fore.GREEN + Style.NORMAL, cmd)
+        return cmd
+    def strip_ansi(text):
+        ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
+        return ansi_escape.sub('', text)
+    pad = 50
+    for cmd, desc in commands:
+        colored_cmd = highlight_params(cmd)
+        real_len = len(strip_ansi(colored_cmd))
+        spaces = ' ' * max(2, pad - real_len)
+        print(f"{Fore.GREEN}{colored_cmd}{spaces}{Fore.YELLOW}- {desc}{Style.RESET_ALL}")
+    print(f"\n{Fore.CYAN}{Style.BRIGHT}========================={Style.RESET_ALL}\n")
 
 if __name__ == "__main__":
     main()
