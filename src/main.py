@@ -3,6 +3,7 @@ from colorama import Fore, Style, init
 import os
 import prompt
 import re
+from bot_help import print_help
 
 def save_data(book, filename="addressbook.pkl"):
     with open(filename, "wb") as f:
@@ -567,7 +568,7 @@ def main():
             book = book.load(args)
             print("Data loaded.")
         elif command == "help":
-            pass
+            print_help()
         elif command == "about":
             print(f"{Fore.LIGHTBLACK_EX}Produced by Serpent Rise Team©")
             #TODO
