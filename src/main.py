@@ -474,7 +474,8 @@ def main():
             print("Invalid command.")
 
 def print_help():
-    print(f"{Fore.CYAN}{Style.BRIGHT}=== Assistant Bot Help ==={Style.RESET_ALL}\n")
+    print(" ")
+    print(f"{Fore.CYAN}{Style.BRIGHT}=================== Assistant Bot Help ==================={Style.RESET_ALL}\n")
     commands = [
         ("hello", "Greet the assistant"),
         ("add-contact <name> [<phone1>] [<phone2>] ...", "Add a new contact. Name is required, phones are optional. You can add multiple phones at once."),
@@ -519,7 +520,8 @@ def print_help():
         real_len = len(cmd)
         spaces = ' ' * max(2, pad - real_len)
         print(f"{colored_cmd}{spaces}{Fore.YELLOW}- {desc}{Style.RESET_ALL}")
-    print(f"\n{Fore.CYAN}{Style.BRIGHT}========================={Style.RESET_ALL}\n")
+    print(" ")
+    print(f"{Fore.CYAN}{Style.BRIGHT}="*60, f"{Style.RESET_ALL}\n")
 
 if __name__ == "__main__":
     main()
