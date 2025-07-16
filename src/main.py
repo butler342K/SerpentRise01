@@ -11,7 +11,16 @@ def save_data(book, filename="addressbook.pkl"):
 def load_data(filename="addressbook.pkl"):
     try:
         with open(filename, "rb") as f:
-            return pickle.load(f)
+            book = pickle.load(f)
+            # Check if the book has the necessary attributes
+            for record in book.data.values():
+                if not hasattr(record, 'address'):
+                    record.address = None
+                if not hasattr(record, 'email'):
+                    record.email = None
+                if not hasattr(record, 'birthday'):
+                    record.birthday = None
+            return book
     except FileNotFoundError:
         return AddressBook() 
     
@@ -151,7 +160,7 @@ class Record:
 
 
 class AddressBook(UserDict):
-    def add_record(self, record):
+    def add_record(self, record: Record):
         if not isinstance(record, Record):
             raise TypeError("Only Record instances can be added.")
         self.data[record.name.value] = record
@@ -401,7 +410,7 @@ def handle_add_address(args, book):
     return "Address added."
 
 @input_error
-def handle_show_address(args, book):
+def handle_show_address(args, book: AddressBook):
     name = args[0]
     record = book.find(name)
     if record is None:
@@ -519,7 +528,7 @@ def main():
             print("How can I help you?")
         elif command == "add-contact":
             print(add_contact(args, book))
-        elif command == "change-contact":
+        elif command in ["change-contact", "edit-contact", "edit-phone"]:
             print(change_contact(args, book))
         elif command == "delete-contact":
             print(delete_contact(args, book))
