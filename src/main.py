@@ -3,6 +3,7 @@ from colorama import Fore, Style, init
 import os
 import prompt
 import re
+from notes import NotesBook, Note
 
 def save_data(book, filename="addressbook.pkl"):
     with open(filename, "wb") as f:
@@ -71,6 +72,7 @@ class Record:
         self.phones = []
         self.email = None
         self.birthday = None
+        self.notes = []
     def add_phone(self, phone):
         if self.find_phone(phone):
             print(f"Phone {phone} already exists for {self.name.value}. Not adding.")
@@ -377,6 +379,58 @@ def search_contacts(args, book: AddressBook):
     else:
         return "No matching contacts found."
 
+@input_error
+def handle_add_note(args, notes_book):
+    contact, *note_parts = args
+    tags = []
+    text = []
+    for part in note_parts:
+        if part.startswith("#"):
+            tags.append(part[1:])
+        else:
+            text.append(part)
+    if not text:
+        return "Note text cannot be empty."
+    note = Note(" ".join(text), tags)
+    notes_book.add_note(contact, note)
+    return "Note added."
+
+@input_error
+def handle_show_notes(args, notes_book):
+    contact = args[0]
+    notes = notes_book.get_notes(contact)
+    if not notes:
+        return f"{contact} has no notes."
+    return "\n".join(str(note) for note in notes)
+
+@input_error
+def handle_search_notes(args, notes_book):
+    tag = args[0]
+    found = notes_book.search_by_tag(tag)
+    if not found:
+        return "No notes found with this tag."
+    return "\n".join(f"{contact}: {note}" for contact, note in found)
+
+@input_error
+def handle_edit_note(args, notes_book):
+    contact, note_id, *new_parts = args
+    tags = []
+    text = []
+    for part in new_parts:
+        if part.startswith("#"):
+            tags.append(part[1:])
+        else:
+            text.append(part)
+    if not text:
+        return "New note text cannot be empty."
+    success = notes_book.edit_note(contact, note_id, " ".join(text), tags)
+    return "Note updated." if success else "Note not found."
+
+@input_error
+def handle_remove_note(args, notes_book):
+    contact, note_id = args
+    notes_book.delete_note(contact, note_id)
+    return "Note deleted."
 
 
 
@@ -418,6 +472,7 @@ def main():
     print_welcome() 
     # Load the address book data from file or create a new one
     book = load_data()
+    notes_book = NotesBook.load()
 
     while True:
         user_input = prompt.session.prompt(f"Enter a command >>> ", completer=prompt.completer, complete_while_typing=False)
@@ -459,6 +514,16 @@ def main():
             print(contact_birthday(args, book))
         elif command == "birthdays":
             upcoming_birthdays(args, book)
+        elif command == "add-note":
+            print(handle_add_note(args, notes_book))
+        elif command == "show-notes":
+            print(handle_show_notes(args, notes_book))
+        elif command == "search-notes":
+            print(handle_search_notes(args, notes_book))
+        elif command == "edit-note":
+            print(handle_edit_note(args, notes_book))
+        elif command == "remove-note":
+            print(handle_remove_note(args, notes_book))
         elif command == "save":
             book.save(args)
             print("Data saved.")
