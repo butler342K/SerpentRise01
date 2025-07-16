@@ -20,7 +20,7 @@ commands = ['add-contact',
             'birthdays', 
             'all', 
             'save',
-            'search'
+            'search',
             'load',
             'close',
             'exit', 
