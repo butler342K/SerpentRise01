@@ -9,3 +9,4 @@ env.bak/
 venv.bak/
 
 __pycache__/
+addressbook.pkl
