@@ -146,19 +146,23 @@ class Record:
         return self.address.value if self.address else None
     def add_birthday(self, birthday):
         self.birthday = Birthday(birthday)
-    def __str__(self):
-        phones_str = '; '.join(p.value for p in self.phones)
-        email_str = ""
-        if hasattr(self, 'email') and self.email:
-            email_str = f", email: {self.email.value}"
-        birthday_str = ""
-        if self.birthday:
-            birthday_str = f", birthday: {self.birthday.value.strftime('%d.%m.%Y')}"
-        address_str = ""
-        if hasattr(self, 'address') and self.address:
-            address_str = f", address: {self.address.value}"
+    def to_string(self, notes_book):
+        phones_str = '; '.join(p.value for p in self.phones) if self.phones else "no phones"
+        email_str = f", email: {self.email.value}" if self.email else ""
+        birthday_str = f", birthday: {self.birthday.value.strftime('%d.%m.%Y')}" if self.birthday else ""
+        address_str = f", address: {self.address.value}" if self.address else ""
+        notes = notes_book.get_notes(self.name.value)
+        if notes:
+            notes_list = []
+            for note in notes:
+                note_tags = f"tags: {', '.join(note.tags)}" if note.tags else "no tags"
+                notes_list.append(f"[{note.id[:8]}] {note.text} ({note_tags})")
+            notes_str = "\n    Notes:\n    " + "\n    ".join(notes_list)
+        else:
+            notes_str = "\n    Notes: no notes"
         
-        return f"Contact name: {self.name.value}, phones: {phones_str}{email_str}{birthday_str}{address_str}"
+        return f"Contact name: {self.name.value}, phones: {phones_str}{email_str}{birthday_str}{address_str}{notes_str}"
+
         # == show full information about contact ==   
         # return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}, Birthday: {self.birthday.value.strftime('%d.%m.%Y') if self.birthday else 'Not set'}"
 
@@ -320,13 +324,13 @@ def show_phone(args, book: AddressBook):
     return record
 
 @input_error
-def show_all(book: AddressBook):
+def show_all(book: AddressBook, notes_book: NotesBook):
     if not book.data:
         print("No contacts available.")
         return
     print("📗 All contacts: 📗\n")
     for name, record in book.data.items():
-        print(record)  
+        print(record.to_string(notes_book)) 
 
 @input_error
 def handle_add_email(args, book):
@@ -475,8 +479,16 @@ def search_contacts(args, book: AddressBook):
         return "No matching contacts found."
 
 @input_error
-def handle_add_note(args, notes_book):
+def handle_add_note(args, book: AddressBook, notes_book: NotesBook):
+    if len(args) < 2:
+        return "Please provide a contact name and note text."
+
     contact, *note_parts = args
+    record = book.find(contact)
+
+    if record is None:
+        return f"Contact '{contact}' not found."
+
     tags = []
     text = []
     for part in note_parts:
@@ -484,11 +496,16 @@ def handle_add_note(args, notes_book):
             tags.append(part[1:])
         else:
             text.append(part)
+
     if not text:
         return "Note text cannot be empty."
+
     note = Note(" ".join(text), tags)
     notes_book.add_note(contact, note)
+
     return "Note added."
+
+
 
 @input_error
 def handle_show_all_notes(notes_book: NotesBook):
@@ -602,7 +619,7 @@ def main():
         elif command == "phone":
             print(show_phone(args, book))
         elif command == "all":
-            show_all(book)
+            show_all(book, notes_book)
         elif command == "add-email":
             print(handle_add_email(args, book))
         elif command == "show-email":
@@ -618,7 +635,7 @@ def main():
         elif command == "birthdays":
             upcoming_birthdays(args, book)
         elif command == "add-note":
-            print(handle_add_note(args, notes_book))
+            print(handle_add_note(args, book, notes_book))
         elif command == "show-notes":
             print(handle_show_notes(args, notes_book))
         elif command == "search-notes":

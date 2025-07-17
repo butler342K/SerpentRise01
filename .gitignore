@@ -10,3 +10,4 @@ venv.bak/
 
 __pycache__/
 addressbook.pkl
+notesbook.pkl
