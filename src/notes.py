@@ -43,14 +43,32 @@ class NotesBook:
     def get_notes(self, contact):
         return self.data.get(contact, [])
 
-    def save(self, filename="notesbook.pkl"):
-        with open(filename, "wb") as f:
-            pickle.dump(self, f)
+    # def save(self, args):
+    #     filename = None
+    #     if len(args) > 0:
+    #         filename, *_ = args[0]
+    #     if not filename:
+    #         filename = "notesbook.pkl"
+    #     with open(filename, "wb") as f:
+    #         pickle.dump(self, f)
 
-    @staticmethod
-    def load(filename="notesbook.pkl"):
-        try:
-            with open(filename, "rb") as f:
-                return pickle.load(f)
-        except FileNotFoundError:
-            return NotesBook()
+    # def load(self):
+    #     filename = "notesbook.pkl"
+    #     try:
+    #         with open(filename, "rb") as f:
+    #             return pickle.load(f)
+    #     except FileNotFoundError:
+    #         return NotesBook()
+        
+def save_data(book, filename="notesbook.pkl"):
+    with open(filename, "wb") as f:
+        pickle.dump(book, f)
+
+def load_data(filename="notesbook.pkl"):
+    try:
+        with open(filename, "rb") as f:
+            note = pickle.load(f)
+            return note
+    except FileNotFoundError:
+        return NotesBook()
+    

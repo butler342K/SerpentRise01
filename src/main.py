@@ -4,6 +4,7 @@ import os
 import prompt
 import re
 from notes import NotesBook, Note
+import notes
 from bot_help import print_help
 
 def save_data(book, filename="addressbook.pkl"):
@@ -229,7 +230,7 @@ class AddressBook(UserDict):
             with open(filename, "rb") as f:
                 return pickle.load(f)
         except FileNotFoundError:
-            create_new = input("No saved data found. Start with an empty address book? [Y/N]")
+            create_new = input("No saved data found. Start with an empty address book? [Y/N] ")
             if create_new.lower() == 'y':
                 return AddressBook()
             else:
@@ -490,7 +491,14 @@ def handle_add_note(args, notes_book):
     return "Note added."
 
 @input_error
-def handle_show_notes(args, notes_book):
+def handle_show_all_notes(notes_book: NotesBook):
+    notes = notes_book.get_notes(contact)
+    if not notes:
+        return f"{contact} has no notes."
+    return "\n".join(str(note) for note in notes)
+
+@input_error
+def handle_show_notes(args, notes_book: NotesBook):
     contact = args[0]
     notes = notes_book.get_notes(contact)
     if not notes:
@@ -566,7 +574,7 @@ def main():
     print_welcome() 
     # Load the address book data from file or create a new one
     book = load_data()
-    notes_book = NotesBook.load()
+    notes_book = notes.load_data()
 
     while True:
         user_input = prompt.session.prompt(f"Enter a command >>> ", completer=prompt.completer, complete_while_typing=False)
@@ -577,6 +585,7 @@ def main():
 
         if command in ["close", "exit", "quit"]:
             save_data(book)
+            notes.save_data(notes_book)
             print("Data saved. Exiting the assistant bot.")
             print("Good bye!")
             break
@@ -628,6 +637,7 @@ def main():
             print(handle_remove_address(args, book))
         elif command == "save":
             book.save(args)
+            notes.save_data(notes_book)
             print("Data saved.")
         elif command == "load":
             book = book.load(args)
