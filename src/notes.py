@@ -40,6 +40,14 @@ class NotesBook:
                 if tag in note.tags:
                     results.append((contact, note))
         return results
+    
+    def search_by_text(self, keyword):
+        results = []
+        for contact, notes in self.data.items():
+            for note in notes:
+                if keyword.lower() in note.text.lower():
+                    results.append((contact, note))
+        return results
 
     def get_notes(self, contact):
         return self.data.get(contact, [])
@@ -69,6 +77,8 @@ def load_data(filename="notesbook.pkl"):
     try:
         with open(filename, "rb") as f:
             note = pickle.load(f)
+            if not hasattr(note, 'search_by_text'):
+                return NotesBook()
             return note
     except FileNotFoundError:
         return NotesBook()

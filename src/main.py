@@ -531,6 +531,17 @@ def handle_search_notes(args, notes_book):
     return "\n".join(f"{contact}: {note}" for contact, note in found)
 
 @input_error
+def handle_search_notes_text(args, notes_book):
+    if not args:
+        return "Please provide a search keyword."
+
+    keyword = ' '.join(args)
+    found = notes_book.search_by_text(keyword)
+    if not found:
+        return "No notes found with this text."
+    return "\n".join(f"{contact}: {note}" for contact, note in found)
+
+@input_error
 def handle_edit_note(args, notes_book):
     contact, note_id, *new_parts = args
     tags = []
@@ -640,6 +651,8 @@ def main():
             print(handle_show_notes(args, notes_book))
         elif command == "search-notes":
             print(handle_search_notes(args, notes_book))
+        elif command == "search-notes-text":
+            print(handle_search_notes_text(args, notes_book))
         elif command == "edit-note":
             print(handle_edit_note(args, notes_book))
         elif command == "remove-note":
