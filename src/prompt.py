@@ -17,6 +17,11 @@ commands = ['add-contact',
             'show-address',
             'edit-address',
             'remove-address',
+            'add-note',
+            'edit-note',
+            'remove-note',
+            'show-notes',
+            'search-notes',
             'birthdays', 
             'all', 
             'save',
@@ -26,7 +31,8 @@ commands = ['add-contact',
             'exit', 
             'quit',
             'help',
-            'hello'
+            'hello',
+            'about',
             ]
 
 completer = WordCompleter(commands, ignore_case=True)

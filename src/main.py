@@ -662,8 +662,12 @@ def main():
         elif command == "help":
             print_help()
         elif command == "about":
+            print(" ")
+            print(f"{Fore.GREEN}Pretty Notes Bot")
+            print(f"{Fore.LIGHTBLACK_EX}Version: 1.0.0")
             print(f"{Fore.LIGHTBLACK_EX}Produced by Serpent Rise Team©")
-            #TODO
+            print(f"{Fore.LIGHTBLACK_EX}Support: slack.com/project-group_12")
+            print(" ")
         else:
             print("Invalid command.")
 
