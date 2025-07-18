@@ -246,7 +246,7 @@ def input_error(func):
         except (InvalidInputError, ContactNotFoundError, EmailNotSetError, AddressNotSetError, PhoneNotFoundError, AddressBookError) as e:
             return str(e)
         except Exception as e:
-            return f"An unexpected error occurred: {e}"
+            return f"{Fore.RED}Error occurred: {e}"
     return inner
 
 def parse_input(user_input):
@@ -578,7 +578,7 @@ def main():
             print(f"{Fore.LIGHTBLACK_EX}Produced by Serpent Rise Team©")
             #TODO
         else:
-            print("Invalid command.")
+            print(f"{Fore.RED}Invalid command.")
 
 if __name__ == "__main__":
     main()
