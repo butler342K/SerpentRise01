@@ -1,5 +1,6 @@
 import pickle
 import uuid
+from colorama import Fore, Style, init
 
 class Note:
     def __init__(self, text, tags=None):
@@ -8,8 +9,8 @@ class Note:
         self.tags = tags if tags else []
 
     def __str__(self):
-        tags_str = f"[tags: {', '.join(self.tags)}]" if self.tags else ""
-        return f"[{self.id[:8]}] {self.text} {tags_str}"
+        tags_str = f"{Fore.BLUE} {', '.join(f'#{tag}' for tag in self.tags)}" if self.tags else ""
+        return f"{Fore.LIGHTBLACK_EX}[{self.id[:8]}] {Fore.RESET}{self.text} {tags_str}"
 
 class NotesBook:
     def __init__(self):

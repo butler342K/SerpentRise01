@@ -155,12 +155,12 @@ class Record:
         if notes:
             notes_list = []
             for note in notes:
-                note_tags = f"tags: {', '.join(note.tags)}" if note.tags else "no tags"
-                notes_list.append(f"[{note.id[:8]}] {note.text} ({note_tags})")
-            notes_str = "\n    Notes:\n    " + "\n    ".join(notes_list)
+                note_tags = f"{Fore.BLUE} {', '.join(f'#{tag}' for tag in note.tags)}" if note.tags else f"{Fore.LIGHTBLACK_EX}no tags{Fore.RESET}"
+                notes_list.append(f"{Fore.LIGHTBLACK_EX}[{note.id[:8]}]{Fore.RESET} {note.text} {note_tags}")
+            notes_str = f"\n    {Fore.GREEN}Notes:{Fore.RESET}\n    " + "\n    ".join(notes_list)
         else:
-            notes_str = "\n    Notes: no notes"
-        
+            notes_str = f"\n    {Fore.GREEN}Notes:{Fore.RESET} no notes"
+
         return f"Contact name: {self.name.value}, phones: {phones_str}{email_str}{birthday_str}{address_str}{notes_str}"
 
         # == show full information about contact ==   
