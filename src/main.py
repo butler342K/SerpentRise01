@@ -6,6 +6,11 @@ import re
 from notes import NotesBook, Note
 import notes
 from bot_help import print_help
+from datetime import datetime, timedelta
+from errors import (
+    InvalidInputError, ContactNotFoundError, EmailNotSetError,
+    AddressNotSetError, PhoneNotFoundError, AddressBookError
+)
 
 def save_data(book, filename="addressbook.pkl"):
     with open(filename, "wb") as f:
@@ -212,7 +217,7 @@ class AddressBook(UserDict):
                     birthday_this_year += timedelta(days=2)
                 elif datetime.weekday(birthday_this_year) == 6:  # if birthday is on Sunday, move it to Monday
                     birthday_this_year += timedelta(days=1)
-                congratulation_date = datetime.strftime(birthday_this_year, '%Y.%m.%d')
+                # congratulation_date = datetime.strftime(birthday_this_year, '%Y.%m.%d')
                 upcoming_birthdays.append(user)
         return upcoming_birthdays
     
@@ -245,29 +250,10 @@ def input_error(func):
     def inner(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except ValueError:
-            return """Invalid input. Format: 
-            add <name> <phone_number>
-            change <name> <old_phone> <new_phone>
-            phone <name>
-            add-email <name> <email>
-            show-email <name>
-            edit-email <name> <new_email>
-            remove-email <name>
-            add-birthday <name> <DD.MM.YYYY>
-            show-birthday <name>
-            birthdays
-            add-address <name> <address>
-            show-address <name>
-            edit-address <name> <new_address>
-            remove-address <name>
-            all"""
-        except IndexError: # not used now
-            return "Invalid input. Format: phone <name>."
-        except KeyError: # not used now
-            return "Contact not found."
+        except (InvalidInputError, ContactNotFoundError, EmailNotSetError, AddressNotSetError, PhoneNotFoundError, AddressBookError) as e:
+            return str(e)
         except Exception as e:
-            return f"An unexpected error occurred: {e}"
+            return f"{Fore.RED}Error occurred: {e}"
     return inner
 
 def parse_input(user_input):
@@ -277,6 +263,8 @@ def parse_input(user_input):
 
 @input_error
 def add_contact(args, book: AddressBook):
+    if not args:
+        raise InvalidInputError("Please provide a name for the contact.")
     name, *_ = args
     record = book.find(name)
     message = "Contact updated."
@@ -291,36 +279,39 @@ def add_contact(args, book: AddressBook):
 
 @input_error
 def delete_contact(args, book: AddressBook):
-    name = None
-    if len(args) == 0:
-        return "Please provide a name to delete."
+    if not args:
+        raise InvalidInputError("Please provide a name to delete.")
     name, *_ = args
     if not name:
-        return "Please provide a name to delete."
+        raise InvalidInputError("Please provide a name to delete.")
     try:
         book.delete(name)
         return f"Contact '{name}' deleted."
-    except KeyError as e:
-        return str(e)
+    except KeyError:
+        raise ContactNotFoundError(f"Contact '{name}' not found.")
 
 @input_error
 def change_contact(args, book: AddressBook):
+    if len(args) < 3:
+        raise InvalidInputError("Please provide name, old phone, and new phone.")
     name, old_phone, new_phone = args
     record = book.find(name)
     if record is None:
-        return "Contact not found."
+        raise ContactNotFoundError("Contact not found.")
     user_phone = record.find_phone(old_phone)
     if user_phone is None:
-        return "Phone number not found."
+        raise PhoneNotFoundError("Phone number not found.")
     record.edit_phone(old_phone, new_phone)
     return "Contact updated."
 
 @input_error
 def show_phone(args, book: AddressBook):
+    if not args:
+        raise InvalidInputError("Please provide a name.")
     name = args[0]
     record = book.find(name)
     if record is None:
-        return "Contact not found."
+        raise ContactNotFoundError("Contact not found.")
     return record
 
 @input_error
@@ -334,58 +325,70 @@ def show_all(book: AddressBook, notes_book: NotesBook):
 
 @input_error
 def handle_add_email(args, book):
+    if len(args) < 2:
+        raise InvalidInputError("Please provide a name and email.")
     name, email = args
     record = book.find(name)
     if record is None:
-        return "Contact not found."
+        raise ContactNotFoundError("Contact not found.")
     record.add_email(email)
     return "Email added."
 
 @input_error
 def handle_show_email(args, book):
+    if not args:
+        raise InvalidInputError("Please provide a name.")
     name = args[0]
     record = book.find(name)
     if record is None:
-        return "Contact not found."
+        raise ContactNotFoundError("Contact not found.")
     if record.email is None:
-        return "Email is not set."
+        raise EmailNotSetError("Email is not set.")
     return f"{name}'s email: {record.email.value}"
 
 @input_error
 def handle_edit_email(args, book):
+    if len(args) < 2:
+        raise InvalidInputError("Please provide a name and new email.")
     name, new_email = args
     record = book.find(name)
     if record is None:
-        return "Contact not found."
+        raise ContactNotFoundError("Contact not found.")
     record.edit_email(new_email)
     return "Email updated."
 
 @input_error
 def handle_remove_email(args, book):
+    if not args:
+        raise InvalidInputError("Please provide a name.")
     name = args[0]
     record = book.find(name)
     if record is None:
-        return "Contact not found."
+        raise ContactNotFoundError("Contact not found.")
     record.remove_email()
     return "Email removed."
 
 @input_error
 def add_birthday(args, book: AddressBook):
+    if len(args) < 2:
+        raise InvalidInputError("Please provide a name and birthday.")
     name, birthday = args
     record = book.find(name)
     if record is None:
-        return "Contact not found."
+        raise ContactNotFoundError("Contact not found.")
     record.add_birthday(birthday)
     return "Birthday added."
 
 @input_error
 def contact_birthday(args, book: AddressBook):
+    if not args:
+        raise InvalidInputError("Please provide a name.")
     name = args[0]
     record = book.find(name)
     if record is None:
-        return "Contact not found."
+        raise ContactNotFoundError("Contact not found.")
     if record.birthday is None:
-        return "Birthday not set."
+        raise AddressBookError("Birthday not set.")
     birthday = record.birthday.value
     return f"{record.name.value}'s birthday is on {birthday.strftime('%d.%m.%Y')}."
 
@@ -393,10 +396,14 @@ def contact_birthday(args, book: AddressBook):
 def upcoming_birthdays(args, book: AddressBook):
     days = 7  # Default period for upcoming birthdays
     if len(args) > 0:
-        days = int(args[0])
+        try:
+            days = int(args[0])
+        except ValueError:
+            raise InvalidInputError("Days must be an integer.")
     upcoming_birthdays = book.get_upcoming_birthday(days)
     if not upcoming_birthdays:
         print("No upcoming birthdays.")
+        return
     print("🎉 Upcoming birthdays: 🎉")
     for record in upcoming_birthdays:
         birthday = record.birthday.value
@@ -405,49 +412,47 @@ def upcoming_birthdays(args, book: AddressBook):
 @input_error
 def handle_add_address(args, book):
     if len(args) < 2:
-        return "Please provide a name and address."
-
+        raise InvalidInputError("Please provide a name and address.")
     name = args[0]
-    address = ' '.join(args[1:])  # <--- join remaining parts into the address string
-
+    address = ' '.join(args[1:])
     record = book.find(name)
     if record is None:
-        return "Contact not found."
-
+        raise ContactNotFoundError("Contact not found.")
     record.add_address(address)
     return "Address added."
 
 @input_error
 def handle_show_address(args, book: AddressBook):
+    if not args:
+        raise InvalidInputError("Please provide a name.")
     name = args[0]
     record = book.find(name)
     if record is None:
-        return "Contact not found."
+        raise ContactNotFoundError("Contact not found.")
     if record.address is None:
-        return "Address is not set."
+        raise AddressNotSetError("Address is not set.")
     return f"{name}'s address: {record.address.value}"
 
 @input_error
 def handle_edit_address(args, book):
     if len(args) < 2:
-        return "Please provide a name and new address."
-
+        raise InvalidInputError("Please provide a name and new address.")
     name = args[0]
-    new_address = ' '.join(args[1:])  # join the rest
-
+    new_address = ' '.join(args[1:])
     record = book.find(name)
     if record is None:
-        return "Contact not found."
-
+        raise ContactNotFoundError("Contact not found.")
     record.edit_address(new_address)
     return "Address updated."
 
 @input_error
 def handle_remove_address(args, book):
+    if not args:
+        raise InvalidInputError("Please provide a name.")
     name = args[0]
     record = book.find(name)
     if record is None:
-        return "Contact not found."
+        raise ContactNotFoundError("Contact not found.")
     record.remove_address()
     return "Address removed."
 
@@ -455,7 +460,7 @@ def handle_remove_address(args, book):
 @input_error
 def search_contacts(args, book: AddressBook):
     if not args:
-        return "Please provide a search keyword."
+        raise InvalidInputError("Please provide a search keyword.")
 
     keyword = args[0].lower()
     results = []
@@ -508,7 +513,7 @@ def handle_add_note(args, book: AddressBook, notes_book: NotesBook):
 
 
 @input_error
-def handle_show_all_notes(notes_book: NotesBook):
+def handle_show_all_notes(contact, notes_book: NotesBook):
     notes = notes_book.get_notes(contact)
     if not notes:
         return f"{contact} has no notes."
@@ -605,7 +610,7 @@ def main():
     notes_book = notes.load_data()
 
     while True:
-        user_input = prompt.session.prompt(f"Enter a command >>> ", completer=prompt.completer, complete_while_typing=False)
+        user_input = prompt.session.prompt("Enter a command >>> ", completer=prompt.completer, complete_while_typing=False)
         if not user_input.strip():
             print("Please enter a command.")
             continue
@@ -683,7 +688,7 @@ def main():
             print(f"{Fore.LIGHTBLACK_EX}Support: slack.com/project-group_12")
             print(" ")
         else:
-            print("Invalid command.")
+            print(f"{Fore.RED}Invalid command.")
 
 if __name__ == "__main__":
     main()
