@@ -458,7 +458,7 @@ def handle_remove_address(args, book):
 
 
 @input_error
-def search_contacts(args, book: AddressBook):
+def search_contacts(args, book: AddressBook, notes_book: NotesBook):
     if not args:
         raise InvalidInputError("Please provide a search keyword.")
 
@@ -467,16 +467,16 @@ def search_contacts(args, book: AddressBook):
 
     for record in book.data.values():
         if keyword in record.name.value.lower():
-            results.append(str(record))
+            results.append(record.to_string(notes_book))
             continue
         for phone in record.phones:
             if keyword in phone.value:
-                results.append(str(record))
+                results.append(record.to_string(notes_book))
                 break
         if hasattr(record, 'email') and record.email and keyword in record.email.value.lower():
-            results.append(str(record))
+            results.append(record.to_string(notes_book))
         if hasattr(record, 'address') and record.address and keyword in record.address.value.lower():
-            results.append(str(record))
+            results.append(record.to_string(notes_book))
     
     if results:
         return "\n".join(results)
@@ -631,7 +631,7 @@ def main():
         elif command == "delete-contact":
             print(delete_contact(args, book))
         elif command == "search":
-            print(search_contacts(args, book))
+            print(search_contacts(args, book, notes_book))
         elif command == "phone":
             print(show_phone(args, book))
         elif command == "all":
