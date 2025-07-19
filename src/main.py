@@ -151,20 +151,22 @@ class Record:
         return self.address.value if self.address else None
     def add_birthday(self, birthday):
         self.birthday = Birthday(birthday)
-    def to_string(self, notes_book):
+    def to_string(self, notes_book=None):
+        notes_str = ""
         phones_str = '; '.join(p.value for p in self.phones) if self.phones else "no phones"
         email_str = f", email: {self.email.value}" if self.email else ""
         birthday_str = f", birthday: {self.birthday.value.strftime('%d.%m.%Y')}" if self.birthday else ""
         address_str = f", address: {self.address.value}" if self.address else ""
-        notes = notes_book.get_notes(self.name.value)
-        if notes:
-            notes_list = []
-            for note in notes:
-                note_tags = f"{Fore.BLUE} {', '.join(f'#{tag}' for tag in note.tags)}" if note.tags else f"{Fore.LIGHTBLACK_EX}no tags{Fore.RESET}"
-                notes_list.append(f"{Fore.LIGHTBLACK_EX}[{note.id[:8]}]{Fore.RESET} {note.text} {note_tags}")
-            notes_str = f"\n    {Fore.GREEN}Notes:{Fore.RESET}\n    " + "\n    ".join(notes_list)
-        else:
-            notes_str = f"\n    {Fore.GREEN}Notes:{Fore.RESET} no notes"
+        if notes_book:
+            notes = notes_book.get_notes(self.name.value)
+            if notes:
+                notes_list = []
+                for note in notes:
+                    note_tags = f"{Fore.BLUE} {', '.join(f'#{tag}' for tag in note.tags)}" if note.tags else f"{Fore.LIGHTBLACK_EX}no tags{Fore.RESET}"
+                    notes_list.append(f"{Fore.LIGHTBLACK_EX}[{note.id[:8]}]{Fore.RESET} {note.text} {note_tags}")
+                notes_str = f"\n    {Fore.GREEN}Notes:{Fore.RESET}\n    " + "\n    ".join(notes_list)
+            else:
+                notes_str = f"\n    {Fore.GREEN}Notes:{Fore.RESET} no notes"
 
         return f"Contact name: {self.name.value}, phones: {phones_str}{email_str}{birthday_str}{address_str}{notes_str}"
 
@@ -312,7 +314,7 @@ def show_phone(args, book: AddressBook):
     record = book.find(name)
     if record is None:
         raise ContactNotFoundError("Contact not found.")
-    return record
+    return record.to_string()  # Show contact info without notes
 
 @input_error
 def show_all(book: AddressBook, notes_book: NotesBook):
