@@ -11,6 +11,7 @@ from errors import (
     InvalidInputError, ContactNotFoundError, EmailNotSetError,
     AddressNotSetError, PhoneNotFoundError, AddressBookError
 )
+from prettytable import PrettyTable
 
 def save_data(book, filename="addressbook.pkl"):
     with open(filename, "wb") as f:
@@ -319,9 +320,28 @@ def show_all(book: AddressBook, notes_book: NotesBook):
     if not book.data:
         print("No contacts available.")
         return
-    print("📗 All contacts: 📗\n")
+    print(f"{Fore.GREEN}\U0001F4D7 All contacts: \U0001F4D7{Fore.RESET}\n")
+    table = PrettyTable()
+    table.field_names = [
+        f"{Fore.GREEN}Name{Fore.RESET}",
+        f"{Fore.YELLOW}Phones{Fore.RESET}",
+        f"{Fore.YELLOW}Email{Fore.RESET}",
+        f"{Fore.YELLOW}Birthday{Fore.RESET}",
+        f"{Fore.YELLOW}Address{Fore.RESET}"
+    ]
     for name, record in book.data.items():
-        print(record.to_string(notes_book)) 
+        phones = f"{Fore.YELLOW}" + ('; '.join(p.value for p in record.phones) if record.phones else "-") + f"{Fore.RESET}"
+        email = f"{Fore.YELLOW}" + (record.email.value if record.email else "-") + f"{Fore.RESET}"
+        birthday = f"{Fore.YELLOW}" + (record.birthday.value.strftime('%d.%m.%Y') if record.birthday else "-") + f"{Fore.RESET}"
+        address = f"{Fore.YELLOW}" + (record.address.value if record.address else "-") + f"{Fore.RESET}"
+        table.add_row([
+            f"{Fore.GREEN}{name}{Fore.RESET}",
+            phones,
+            email,
+            birthday,
+            address
+        ])
+    print(table)
 
 @input_error
 def handle_add_email(args, book):
