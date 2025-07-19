@@ -671,6 +671,7 @@ def main():
             print("Data saved.")
         elif command == "load":
             book = book.load(args)
+            notes_book = notes.load_data()
             print("Data loaded.")
         elif command == "help":
             print_help()
