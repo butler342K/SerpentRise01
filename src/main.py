@@ -11,6 +11,8 @@ from errors import (
     InvalidInputError, ContactNotFoundError, EmailNotSetError,
     AddressNotSetError, PhoneNotFoundError, AddressBookError
 )
+from pretty_table2 import draw_table
+from prettytable import HRuleStyle, PrettyTable
 
 def save_data(book, filename="addressbook.pkl"):
     with open(filename, "wb") as f:
@@ -170,9 +172,6 @@ class Record:
 
         return f"Contact name: {self.name.value}, phones: {phones_str}{email_str}{birthday_str}{address_str}{notes_str}"
 
-        # == show full information about contact ==   
-        # return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}, Birthday: {self.birthday.value.strftime('%d.%m.%Y') if self.birthday else 'Not set'}"
-
 
 class AddressBook(UserDict):
     def add_record(self, record: Record):
@@ -219,7 +218,6 @@ class AddressBook(UserDict):
                     birthday_this_year += timedelta(days=2)
                 elif datetime.weekday(birthday_this_year) == 6:  # if birthday is on Sunday, move it to Monday
                     birthday_this_year += timedelta(days=1)
-                # congratulation_date = datetime.strftime(birthday_this_year, '%Y.%m.%d')
                 upcoming_birthdays.append(user)
         return upcoming_birthdays
     
@@ -316,14 +314,111 @@ def show_phone(args, book: AddressBook):
         raise ContactNotFoundError("Contact not found.")
     return record.to_string()  # Show contact info without notes
 
+# @input_error
+# def show_all(book: AddressBook, notes_book: NotesBook):
+#     if not book.data:
+#         print("No contacts available.")
+#         return
+#     print("📗 All contacts: 📗\n")
+#     for name, record in book.data.items():
+#         print(record.to_string(notes_book)) 
+
+# @input_error
+# def show_all(book: AddressBook, notes_book: NotesBook):
+#     if not book.data:
+#         print("No contacts available.")
+#         return
+#     print(f"{Fore.GREEN}\U0001F4D7 All contacts: \U0001F4D7{Fore.RESET}\n")
+#     table = PrettyTable(        vertical_char="│",
+#         horizontal_char="─",
+#         junction_char="┼",
+#         top_junction_char="┬",
+#         bottom_junction_char="┴",
+#         right_junction_char="┤",
+#         left_junction_char="├",
+#         top_right_junction_char="╮",
+#         top_left_junction_char="╭",
+#         bottom_right_junction_char="╯",
+#         bottom_left_junction_char="╰",
+#         hrules=HRuleStyle.ALL,
+#         align="l",)
+#     table.field_names = [
+#         f"{Fore.GREEN}Name{Fore.RESET}",
+#         f"{Fore.YELLOW}Phones{Fore.RESET}",
+#         f"{Fore.YELLOW}Email{Fore.RESET}",
+#         f"{Fore.YELLOW}Birthday{Fore.RESET}",
+#         f"{Fore.YELLOW}Address{Fore.RESET}"
+#     ]
+#     for name, record in book.data.items():
+#         phones = f"{Fore.YELLOW}" + ('\n'.join(p.value for p in record.phones) if record.phones else "-") + f"{Fore.RESET}"
+#         email = f"{Fore.YELLOW}" + (record.email.value if record.email else "-") + f"{Fore.RESET}"
+#         birthday = f"{Fore.YELLOW}" + (record.birthday.value.strftime('%d.%m.%Y') if record.birthday else "-") + f"{Fore.RESET}"
+#         address = f"{Fore.YELLOW}" + (record.address.value if record.address else "-") + f"{Fore.RESET}"
+#         table.add_row([
+#             f"{Fore.GREEN}{name}{Fore.RESET}",
+#             phones,
+#             email,
+#             birthday,
+#             address
+#         ])
+#         table.max_width[0] = 30
+#         table.max_width[1] = 50
+#         table.max_width[2] = 50
+#         table.max_width[3] = 50
+#         table.max_width[4] = 20
+#         table.max_width[5] = 50
+#         table.max_width[6] = 50
+#         table.max_width[7] = 50
+#     print(table)
+
 @input_error
 def show_all(book: AddressBook, notes_book: NotesBook):
     if not book.data:
         print("No contacts available.")
         return
-    print("📗 All contacts: 📗\n")
+    print("="*10, f"{Fore.GREEN}\U0001F4D7 All contacts: \U0001F4D7{Fore.RESET}","="*10)
+    headers=[
+        f"{Fore.MAGENTA}Name{Fore.RESET}",
+        f"{Fore.YELLOW}Phones{Fore.RESET}",
+        f"{Fore.YELLOW}Email{Fore.RESET}",
+        f"{Fore.YELLOW}Birthday{Fore.RESET}",
+        f"{Fore.YELLOW}Address{Fore.RESET}",
+        f"{Fore.YELLOW}Notes{Fore.RESET}",
+        f"{Fore.YELLOW}Tags{Fore.RESET}",
+    ]
+    data = []
     for name, record in book.data.items():
-        print(record.to_string(notes_book)) 
+        phones = ('\n'.join(p.value for p in record.phones) if record.phones else "-") + f"{Fore.RESET}"
+        email = (record.email.value if record.email else "-") + f"{Fore.RESET}"
+        birthday = (record.birthday.value.strftime('%d.%m.%Y') if record.birthday else "-") + f"{Fore.RESET}"
+        address = (record.address.value if record.address else "-") + f"{Fore.RESET}"
+        note_str = " - "
+        tag_str = " - "
+
+        if notes_book:
+            notes = notes_book.get_notes(record.name.value)
+            if notes:
+                notes_list = []
+                tags_list = []
+                for note in notes:
+                    tags_list.append(f"{Fore.BLUE} {' '.join(f'#{tag}' for tag in note.tags)}{Fore.RESET}" if note.tags else " - ")
+                    # notes_list.append(f"{Fore.LIGHTBLACK_EX}[{note.id[:8]}]{Fore.RESET} {note.text}")
+                    notes_list.append(f"{note.text}")
+                note_str = "\n".join(notes_list)
+                tag_str = "\n".join(tags_list)
+
+        data.append([
+            f"{Fore.GREEN}{name}{Fore.RESET}",
+            phones,
+            email,
+            birthday,
+            address,
+            note_str,
+            tag_str
+        ])
+    table = draw_table(headers, data)
+    print(table)
+
 
 @input_error
 def handle_add_email(args, book):
