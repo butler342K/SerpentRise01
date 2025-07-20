@@ -25,19 +25,19 @@ Developed by **Serpent Rise Team©**.
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/butler342K/SerpentRise01.git
 ```
 
 ### 2️⃣ Change to the Project Directory
 
 ```bash
-cd <your-repository-folder>
+cd SerpentRise01
 ```
 
 ### 3️⃣ Create a Virtual Environment (Recommended)
 
 ```bash
-python -m venv venv
+python -m venv .venv
 ```
 
 ### 4️⃣ Activate the Virtual Environment
@@ -45,13 +45,13 @@ python -m venv venv
 * **On Windows:**
 
 ```bash
-venv\Scripts\activate
+.venv\Scripts\activate
 ```
 
 * **On macOS/Linux:**
 
 ```bash
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 ### 5️⃣ Install Dependencies
@@ -105,6 +105,7 @@ You'll see a welcome message and can start typing commands.
 | `remove-note <name> <note_id>`                  | Remove a note                               |
 | `search <keyword>`                              | Search contacts by name, phone, email, etc. |
 | `all`                                           | Show all contacts and notes                 |
+| `all-notes`                                     | Show all notes                              |
 | `save`                                          | Save data to file                           |
 | `load`                                          | Load data from file                         |
 | `help`                                          | Show help menu                              |
@@ -118,7 +119,7 @@ You'll see a welcome message and can start typing commands.
 All data is saved automatically to:
 
 * **`addressbook.pkl`** — for contacts  
-* **`notes.pkl`** — for notes
+* **`notesbook.pkl`** — for notes
 
 These files are created in the project directory.
 
@@ -135,6 +136,8 @@ add-note John Buy gift #birthday
 search John
 show-notes John
 birthdays
+all
+all-notes
 save
 exit
 ```
@@ -144,11 +147,14 @@ exit
 ## 🧰 Project Structure
 
 ```bash
-├── main.py               # Main bot script
-├── notes.py              # Notes module
-├── bot_help.py           # Help functions
+├── src
+    ├── main.py               # Main bot script
+    ├── notes.py              # Notes module
+    ├── bot_help.py           # Help functions
+    ├── prompts.py            # Autocomplete functions
+    ├── pretty_table2.py     # Table format output functions
 ├── addressbook.pkl       # Saved contacts (auto-generated)
-├── notes.pkl             # Saved notes (auto-generated)
+├── notesbook.pkl         # Saved notes (auto-generated)
 ├── requirements.txt      # Python dependencies
 ```
 
