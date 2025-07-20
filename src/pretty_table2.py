@@ -71,6 +71,6 @@ def draw_table(headers, data):
     table.field_names = headers
     for txt in data:
         # Wrap text for each cell
-        wrapped_row = [wrap_text(str(cell), 80) for cell in txt]
+        wrapped_row = [wrap_text(str(cell), 50) for cell in txt]
         table.add_row(wrapped_row)
     return table

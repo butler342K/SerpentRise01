@@ -339,7 +339,7 @@ def show_all(book: AddressBook, notes_book: NotesBook):
         birthday = (record.birthday.value.strftime('%d.%m.%Y') if record.birthday else "-") + f"{Fore.RESET}"
         address = (record.address.value if record.address else "-") + f"{Fore.RESET}"
         note_str = " - "
-        tag_str = " - "
+        tag_str = f"{Fore.BLUE} - {Fore.RESET}"
 
         if notes_book:
             notes = notes_book.get_notes(record.name.value)
@@ -347,7 +347,7 @@ def show_all(book: AddressBook, notes_book: NotesBook):
                 notes_list = []
                 tags_list = []
                 for note in notes:
-                    tags_list.append(f"{Fore.BLUE} {' '.join(f'#{tag}' for tag in note.tags)}{Fore.RESET}" if note.tags else " - ")
+                    tags_list.append(f" {' '.join(f'{Fore.BLUE}#{tag}{Fore.RESET}' for tag in note.tags)}" if note.tags else f"{Fore.BLUE} - {Fore.RESET}")
                     notes_list.append(f"📘 {note.text}")
                 note_str = "\n".join(notes_list)
                 tag_str = "\n".join(tags_list)
