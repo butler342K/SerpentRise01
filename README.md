@@ -64,6 +64,7 @@ pip install -r requirements.txt
 >
 > * `colorama`
 > * `prompt_toolkit`
+> * `prettytable`
 
 ---
 
