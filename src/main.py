@@ -832,8 +832,13 @@ def handle_show_all_notes(notes_book: NotesBook):
         f"{Fore.LIGHTGREEN_EX}Tags{Fore.RESET}",
     ]
     data = []
+    seen_note_ids = set()
     for contact, notes_list in notes.items():
         for note in notes_list:
+            # Ensure unique notes by ID
+            if note.id in seen_note_ids:
+                continue
+            seen_note_ids.add(note.id)
             tags = f"{Fore.BLUE} {', '.join(f'#{tag}' for tag in note.tags)}{Fore.RESET}" if note.tags else f"{Fore.LIGHTBLACK_EX}no tags{Fore.RESET}"
             data.append([
                 f"{Fore.LIGHTBLACK_EX}{note.id[:8]}{Fore.RESET}",
