@@ -97,10 +97,11 @@ You'll see a welcome message and can start typing commands.
 | `remove-address <name>`                         | Remove address                              |
 | `add-birthday <name> <DD.MM.YYYY>`              | Add birthday                                |
 | `show-birthday <name>`                          | Show birthday                               |
-| `birthdays`                                     | Show upcoming birthdays (default 7 days)    |
+| `birthdays [<days>]`                            | Show upcoming birthdays (default 7 days)    |
 | `add-note <name> <text> #tag1 #tag2`            | Add note with optional tags                 |
 | `show-notes <name>`                             | Show all notes for a contact                |
 | `search-notes <tag>`                            | Search notes by tag                         |
+| `search-notes-text <keyword>`                   | Search notes by text                        |
 | `edit-note <name> <note_id> <new_text> #newtag` | Edit note                                   |
 | `remove-note <name> <note_id>`                  | Remove a note                               |
 | `search <keyword>`                              | Search contacts by name, phone, email, etc. |
