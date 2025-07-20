@@ -656,7 +656,7 @@ def print_welcome():
                     ~--______-~                ~-___-~
         """
     print(f"{Fore.GREEN}{Style.BRIGHT}{cobra}")
-    print(" "*18, f" {Fore.GREEN}{Style.BRIGHT}Welcome to the Assistant Bot!")
+    print(" "*18, f" {Fore.GREEN}{Style.BRIGHT}Welcome to TermiBook Assistant Bot!")
     print(" ")
     print(" "*15, f" {Fore.GREEN}{Style.BRIGHT}Type '{Fore.RED}help{Fore.GREEN}' for a list of commands.")
     print(" ")
@@ -744,7 +744,7 @@ def main():
             print_help()
         elif command == "about":
             print(" ")
-            print(f"{Fore.GREEN}Pretty Notes Bot")
+            print(f"{Fore.GREEN}TermiBook Bot")
             print(f"{Fore.LIGHTBLACK_EX}Version: 1.0.0")
             print(f"{Fore.LIGHTBLACK_EX}Produced by Serpent Rise Team©")
             print(f"{Fore.LIGHTBLACK_EX}Support: slack.com/project-group_12")
