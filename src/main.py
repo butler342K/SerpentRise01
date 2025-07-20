@@ -361,7 +361,13 @@ def show_all(book: AddressBook, notes_book: NotesBook):
             note_str,
             tag_str
         ])
-    table = draw_table(headers, data)
+    # Draw the table with headers and data with proper column widths
+    try:
+        columns, _ = os.get_terminal_size()
+    except OSError:
+        columns = 80  # Default width if terminal size cannot be determined
+
+    table = draw_table(headers, data, columns)
     print(table)
 
 
@@ -446,7 +452,7 @@ def upcoming_birthdays(args, book: AddressBook):
     if not upcoming_birthdays:
         print("No upcoming birthdays.")
         return
-    print("🎉 Upcoming birthdays: 🎉")
+    print(f"🎉 {Fore.MAGENTA}Upcoming birthdays:{Fore.RESET} 🎉")
     for record in upcoming_birthdays:
         birthday = record.birthday.value
         print(f"{record.name.value}: {birthday.strftime('%d.%m')}") #  Show only day and month
@@ -658,7 +664,7 @@ def print_welcome():
     print(f"{Fore.GREEN}{Style.BRIGHT}{cobra}")
     print(" "*18, f" {Fore.GREEN}{Style.BRIGHT}Welcome to TermiBook Assistant Bot!")
     print(" ")
-    print(" "*15, f" {Fore.GREEN}{Style.BRIGHT}Type '{Fore.RED}help{Fore.GREEN}' for a list of commands.")
+    print(" "*18, f" {Fore.GREEN}{Style.BRIGHT}Type '{Fore.RED}help{Fore.GREEN}' for a list of commands.")
     print(" ")
 
 # Assistant Bot for Address Book Management

@@ -39,7 +39,7 @@ def wrap_text(text, max_width):
     
     return "\n".join(lines)
 
-def draw_table(headers, data):
+def draw_table(headers, data, maxcolwidths=80):
     """
     Generate a formatted table using PrettyTable.
 
@@ -50,7 +50,8 @@ def draw_table(headers, data):
 
     :return: PrettyTable: A formatted table.
     """
-    # hrules =  if allhlines else HRuleStyle.FRAME
+    # maxcolumn width depends on the terminal size
+    col_widths = maxcolwidths // 4
 
     table = PrettyTable(
         vertical_char="│",
@@ -71,6 +72,6 @@ def draw_table(headers, data):
     table.field_names = headers
     for txt in data:
         # Wrap text for each cell
-        wrapped_row = [wrap_text(str(cell), 50) for cell in txt]
+        wrapped_row = [wrap_text(str(cell), col_widths) for cell in txt]
         table.add_row(wrapped_row)
     return table
