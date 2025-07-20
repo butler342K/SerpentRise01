@@ -3,6 +3,22 @@ from colorama import Fore, Style, init
 init(autoreset=True)
 
 def print_help():
+    """
+    Display the list of available commands and their descriptions in the assistant bot.
+
+    This function prints a formatted help menu showing all possible commands 
+    supported by the assistant bot, including commands for managing contacts, 
+    notes, birthdays, addresses, and data persistence.
+
+    The output is colorized using the `colorama` library for better readability 
+    in the terminal.
+
+    Example output:
+        hello               - Greet the assistant
+        add-contact <name>  - Add a new contact
+
+    No parameters are required.
+    """
     print(" ")
     print(f"{Fore.CYAN}{Style.BRIGHT}=================== Assistant Bot Help ==================={Style.RESET_ALL}\n")
     commands = [
@@ -62,6 +78,3 @@ def print_help():
         print(f"{colored_cmd}{spaces}{Fore.YELLOW}- {desc}{Style.RESET_ALL}")
     print(" ")
     print(f"{Fore.CYAN}{Style.BRIGHT}="*60, f"{Style.RESET_ALL}\n")
-
-
-
