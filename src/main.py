@@ -12,13 +12,29 @@ from errors import (
     AddressNotSetError, PhoneNotFoundError, AddressBookError
 )
 from pretty_table2 import draw_table
-from prettytable import HRuleStyle, PrettyTable
+from collections import UserDict
 
 def save_data(book, filename="addressbook.pkl"):
+    """
+    Save the address book to a file.
+
+    Args:
+        book (AddressBook): The address book to save.
+        filename (str): File name to store the data. Defaults to "addressbook.pkl".
+    """
     with open(filename, "wb") as f:
         pickle.dump(book, f)
 
 def load_data(filename="addressbook.pkl"):
+    """
+    Load the address book from a file.
+
+    Args:
+        filename (str): File name to load the data from. Defaults to "addressbook.pkl".
+
+    Returns:
+        AddressBook: Loaded address book or new empty one if file not found.
+    """
     try:
         with open(filename, "rb") as f:
             book = pickle.load(f)
@@ -34,9 +50,12 @@ def load_data(filename="addressbook.pkl"):
     except FileNotFoundError:
         return AddressBook() 
     
-from collections import UserDict
+
 
 class Field:
+    """
+    Base class for fields in a contact record (e.g., Name, Phone).
+    """
     def __init__(self, value):
         self.value = value
 
@@ -44,12 +63,18 @@ class Field:
         return str(self.value)
 
 class Name(Field):
+    """
+    Represents a contact's name.
+    """
     def __init__(self, value):
         if not isinstance(value, str) or not value.strip():
             raise ValueError("Name must be a non-empty string.")
         self.value = value.strip()
 
 class Phone(Field):
+    """
+    Represents a contact's phone number.
+    """
     def __init__(self, phone):
         if not isinstance(phone, str) or not phone.strip():
             raise ValueError("Phone must be a non-empty string.")
@@ -61,6 +86,9 @@ class Phone(Field):
             raise ValueError("Phone number must be 10 digits long.")
 
 class Email(Field):
+    """
+    Represents a contact's email.
+    """
     def __init__(self, email):
         if not isinstance(email, str) or not email.strip():
             raise ValueError("Email must be a non-empty string.")
@@ -73,7 +101,19 @@ class Email(Field):
 from datetime import datetime, date, timedelta        
 
 class Birthday(Field):
+    """
+    Represents a contact's birthday.
+    """
     def __init__(self, value):
+        """
+        Initialize a Birthday with date validation.
+
+        Args:
+            value (str): Date in DD.MM.YYYY format.
+
+        Raises:
+            ValueError: If date is invalid or out of range.
+        """
         try:
             self.value = datetime.strptime(value, "%d.%m.%Y")
             if self.value.year < 1900 or self.value > datetime.now():
@@ -85,6 +125,9 @@ class Birthday(Field):
                 raise ValueError(str(e))
 
 class Address(Field):
+    """
+    Represents a contact's address.
+    """
     def __init__(self, value):
         if not value.strip():
             self.value = None
@@ -97,6 +140,17 @@ class Address(Field):
         self.value = value
 
 class Record:
+    """
+    Represents a contact record in the address book.
+
+    Attributes:
+        name (Name): Contact's name.
+        phones (list): List of Phone objects.
+        email (Email): Contact's email (optional).
+        birthday (Birthday): Contact's birthday (optional).
+        notes (list): Notes associated with the contact (optional, stored externally).
+        address (Address): Contact's address (optional).
+    """
     def __init__(self, name):
         self.name = Name(name)
         self.phones = []
@@ -174,6 +228,9 @@ class Record:
 
 
 class AddressBook(UserDict):
+    """
+    Represents an address book that stores contacts (Record instances).
+    """
     def add_record(self, record: Record):
         if not isinstance(record, Record):
             raise TypeError("Only Record instances can be added.")
@@ -249,6 +306,15 @@ class AddressBook(UserDict):
                 return self
 
 def input_error(func):
+    """
+    Decorator to handle exceptions for user input and return friendly error messages.
+
+    Args:
+        func (function): Function to wrap.
+
+    Returns:
+        function: Wrapped function with error handling.
+    """
     def inner(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -259,12 +325,31 @@ def input_error(func):
     return inner
 
 def parse_input(user_input):
+    """
+    Parse user input into command and arguments.
+
+    Args:
+        user_input (str): Full command line input.
+
+    Returns:
+        tuple: command and list of arguments.
+    """    
     cmd, *args = user_input.split()
     cmd = cmd.strip().lower()
     return cmd, *args
 
 @input_error
 def add_contact(args, book: AddressBook):
+    """
+    Add a new contact or update existing one with additional phones.
+
+    Args:
+        args (list): List containing name and optional phone numbers.
+        book (AddressBook): The address book to add the contact to.
+
+    Returns:
+        str: Confirmation message.
+    """
     if not args:
         raise InvalidInputError("Please provide a name for the contact.")
     name, *_ = args
@@ -281,6 +366,16 @@ def add_contact(args, book: AddressBook):
 
 @input_error
 def delete_contact(args, book: AddressBook):
+    """
+    Delete a contact by name.
+
+    Args:
+        args (list): List containing contact name.
+        book (AddressBook): The address book.
+
+    Returns:
+        str: Confirmation message or error.
+    """
     if not args:
         raise InvalidInputError("Please provide a name to delete.")
     name, *_ = args
@@ -294,6 +389,16 @@ def delete_contact(args, book: AddressBook):
 
 @input_error
 def change_contact(args, book: AddressBook):
+    """
+    Change a contact's phone number.
+
+    Args:
+        args (list): [name, old_phone, new_phone]
+        book (AddressBook): The address book.
+
+    Returns:
+        str: Confirmation message.
+    """
     if len(args) < 3:
         raise InvalidInputError("Please provide name, old phone, and new phone.")
     name, old_phone, new_phone = args
@@ -308,6 +413,16 @@ def change_contact(args, book: AddressBook):
 
 @input_error
 def show_phone(args, book: AddressBook):
+    """
+    Show phone numbers of a contact.
+
+    Args:
+        args (list): List containing contact name.
+        book (AddressBook): The address book.
+
+    Returns:
+        str: Contact details.
+    """
     if not args:
         raise InvalidInputError("Please provide a name.")
     name = args[0]
@@ -319,6 +434,13 @@ def show_phone(args, book: AddressBook):
 
 @input_error
 def show_all(book: AddressBook, notes_book: NotesBook):
+    """
+    Display all contacts and their associated notes in a table.
+
+    Args:
+        book (AddressBook): The address book.
+        notes_book (NotesBook): The notes book.
+    """
     if not book.data:
         print("No contacts available.")
         return
@@ -373,6 +495,16 @@ def show_all(book: AddressBook, notes_book: NotesBook):
 
 @input_error
 def handle_add_email(args, book):
+    """
+    Add email to a contact.
+
+    Args:
+        args (list): [name, email]
+        book (AddressBook): The address book.
+
+    Returns:
+        str: Confirmation message.
+    """
     if len(args) < 2:
         raise InvalidInputError("Please provide a name and email.")
     name, email = args
@@ -384,6 +516,16 @@ def handle_add_email(args, book):
 
 @input_error
 def handle_show_email(args, book):
+    """
+    Show contact's email.
+
+    Args:
+        args (list): [name]
+        book (AddressBook): The address book.
+
+    Returns:
+        str: Email information.
+    """
     if not args:
         raise InvalidInputError("Please provide a name.")
     name = args[0]
@@ -396,6 +538,16 @@ def handle_show_email(args, book):
 
 @input_error
 def handle_edit_email(args, book):
+    """
+    Edit contact's email.
+
+    Args:
+        args (list): [name, new_email]
+        book (AddressBook): The address book.
+
+    Returns:
+        str: Confirmation message.
+    """
     if len(args) < 2:
         raise InvalidInputError("Please provide a name and new email.")
     name, new_email = args
@@ -407,6 +559,16 @@ def handle_edit_email(args, book):
 
 @input_error
 def handle_remove_email(args, book):
+    """
+    Remove email from contact.
+
+    Args:
+        args (list): [name]
+        book (AddressBook): The address book.
+
+    Returns:
+        str: Confirmation message.
+    """
     if not args:
         raise InvalidInputError("Please provide a name.")
     name = args[0]
@@ -418,6 +580,16 @@ def handle_remove_email(args, book):
 
 @input_error
 def add_birthday(args, book: AddressBook):
+    """
+    Add birthday to contact.
+
+    Args:
+        args (list): [name, birthday]
+        book (AddressBook): The address book.
+
+    Returns:
+        str: Confirmation message.
+    """
     if len(args) < 2:
         raise InvalidInputError("Please provide a name and birthday.")
     name, birthday = args
@@ -429,6 +601,16 @@ def add_birthday(args, book: AddressBook):
 
 @input_error
 def contact_birthday(args, book: AddressBook):
+    """
+    Show contact's birthday.
+
+    Args:
+        args (list): [name]
+        book (AddressBook): The address book.
+
+    Returns:
+        str: Birthday information.
+    """
     if not args:
         raise InvalidInputError("Please provide a name.")
     name = args[0]
@@ -442,6 +624,13 @@ def contact_birthday(args, book: AddressBook):
 
 @input_error
 def upcoming_birthdays(args, book: AddressBook):
+    """
+    Show upcoming birthdays.
+
+    Args:
+        args (list): [days] (optional)
+        book (AddressBook): The address book.
+    """
     days = 7  # Default period for upcoming birthdays
     if len(args) > 0:
         try:
@@ -459,6 +648,16 @@ def upcoming_birthdays(args, book: AddressBook):
 
 @input_error
 def handle_add_address(args, book):
+    """
+    Add address to contact.
+
+    Args:
+        args (list): [name, address]
+        book (AddressBook): The address book.
+
+    Returns:
+        str: Confirmation message.
+    """
     if len(args) < 2:
         raise InvalidInputError("Please provide a name and address.")
     name = args[0]
@@ -471,6 +670,16 @@ def handle_add_address(args, book):
 
 @input_error
 def handle_show_address(args, book: AddressBook):
+    """
+    Show contact's address.
+
+    Args:
+        args (list): [name]
+        book (AddressBook): The address book.
+
+    Returns:
+        str: Address information.
+    """
     if not args:
         raise InvalidInputError("Please provide a name.")
     name = args[0]
@@ -483,6 +692,16 @@ def handle_show_address(args, book: AddressBook):
 
 @input_error
 def handle_edit_address(args, book):
+    """
+    Edit contact's address.
+
+    Args:
+        args (list): [name, new_address]
+        book (AddressBook): The address book.
+
+    Returns:
+        str: Confirmation message.
+    """
     if len(args) < 2:
         raise InvalidInputError("Please provide a name and new address.")
     name = args[0]
@@ -495,6 +714,16 @@ def handle_edit_address(args, book):
 
 @input_error
 def handle_remove_address(args, book):
+    """
+    Remove contact's address.
+
+    Args:
+        args (list): [name]
+        book (AddressBook): The address book.
+
+    Returns:
+        str: Confirmation message.
+    """
     if not args:
         raise InvalidInputError("Please provide a name.")
     name = args[0]
@@ -507,6 +736,17 @@ def handle_remove_address(args, book):
 
 @input_error
 def search_contacts(args, book: AddressBook, notes_book: NotesBook):
+    """
+    Search contacts by name, phone, email, or address.
+
+    Args:
+        args (list): [keyword]
+        book (AddressBook): The address book.
+        notes_book (NotesBook): The notes book.
+
+    Returns:
+        str: Search results.
+    """
     if not args:
         raise InvalidInputError("Please provide a search keyword.")
 
@@ -533,6 +773,17 @@ def search_contacts(args, book: AddressBook, notes_book: NotesBook):
 
 @input_error
 def handle_add_note(args, book: AddressBook, notes_book: NotesBook):
+    """
+    Add a note with optional tags to a contact.
+
+    Args:
+        args (list): [name, note_text, #tags...]
+        book (AddressBook): The address book.
+        notes_book (NotesBook): The notes book.
+
+    Returns:
+        str: Confirmation message.
+    """
     if len(args) < 2:
         return "Please provide a contact name and note text."
 
@@ -559,9 +810,17 @@ def handle_add_note(args, book: AddressBook, notes_book: NotesBook):
     return "Note added."
 
 
-
 @input_error
 def handle_show_all_notes(notes_book: NotesBook):
+    """
+    Display all notes from all contacts in a formatted table.
+
+    Args:
+        notes_book (NotesBook): The notes manager.
+
+    Returns:
+        str: Formatted table of all notes.
+    """
     notes = notes_book.get_all_notes()
     if not notes:
         return f"The notebook has no notes."
@@ -582,11 +841,27 @@ def handle_show_all_notes(notes_book: NotesBook):
                 f"{note.text}",
                 tags
             ])
-    table = draw_table(headers, data)
+    # Draw the table with headers and data with proper column widths
+    try:
+        columns, _ = os.get_terminal_size()
+    except OSError:
+        columns = 80  # Default width if terminal size cannot be determined
+
+    table = draw_table(headers, data, columns)
     return table
 
 @input_error
 def handle_show_notes(args, notes_book: NotesBook):
+    """
+    Display all notes for a specific contact.
+
+    Args:
+        args (list): [contact_name]
+        notes_book (NotesBook): The notes manager.
+
+    Returns:
+        str: Notes list or message if no notes.
+    """
     contact = args[0]
     notes = notes_book.get_notes(contact)
     if not notes:
@@ -595,6 +870,16 @@ def handle_show_notes(args, notes_book: NotesBook):
 
 @input_error
 def handle_search_notes(args, notes_book):
+    """
+    Search notes by tag.
+
+    Args:
+        args (list): [tag]
+        notes_book (NotesBook): The notes manager.
+
+    Returns:
+        str: Notes matching the tag or message if not found.
+    """
     tag = args[0]
     found = notes_book.search_by_tag(tag)
     if not found:
@@ -603,6 +888,16 @@ def handle_search_notes(args, notes_book):
 
 @input_error
 def handle_search_notes_text(args, notes_book):
+    """
+    Search notes by text content.
+
+    Args:
+        args (list): [keyword(s)]
+        notes_book (NotesBook): The notes manager.
+
+    Returns:
+        str: Notes matching the text or message if not found.
+    """
     if not args:
         return "Please provide a search keyword."
 
@@ -614,6 +909,16 @@ def handle_search_notes_text(args, notes_book):
 
 @input_error
 def handle_edit_note(args, notes_book):
+    """
+    Edit a note's text and tags for a specific contact.
+
+    Args:
+        args (list): [contact_name, note_id, new_text, #tags...]
+        notes_book (NotesBook): The notes manager.
+
+    Returns:
+        str: Update confirmation or error if note not found.
+    """
     contact, note_id, *new_parts = args
     tags = []
     text = []
@@ -629,6 +934,16 @@ def handle_edit_note(args, notes_book):
 
 @input_error
 def handle_remove_note(args, notes_book):
+    """
+    Remove a note from a contact.
+
+    Args:
+        args (list): [contact_name, note_id]
+        notes_book (NotesBook): The notes manager.
+
+    Returns:
+        str: Confirmation message.
+    """
     contact, note_id = args
     notes_book.delete_note(contact, note_id)
     return "Note deleted."
@@ -636,6 +951,9 @@ def handle_remove_note(args, notes_book):
 
 
 def print_welcome():
+    """
+    Print the welcome message with ASCII art when the bot starts.
+    """
     if os.name == 'nt':
         os.system('cls')
     else:
@@ -669,6 +987,19 @@ def print_welcome():
 
 # Assistant Bot for Address Book Management
 def main():
+    """
+    Main function to run the TermiBook Assistant Bot.
+
+    This function initializes the terminal assistant, loads the saved data (contacts and notes),
+    and enters an infinite loop waiting for user commands. It supports various commands to manage:
+    - Contacts (add, edit, delete, search, view phones, emails, addresses, birthdays)
+    - Notes (add, edit, delete, search by tag or text)
+    - Data persistence (save, load)
+    - Help and information display.
+
+    Commands are entered via a prompt with autocompletion.
+    The bot continues running until the user types 'exit', 'close', or 'quit'.
+    """
     init(autoreset=True) # Initialize colorama for colored output
     print_welcome() 
     # Load the address book data from file or create a new one
