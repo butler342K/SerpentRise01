@@ -1,17 +1,16 @@
 from prettytable import HRuleStyle, PrettyTable
 def wrap_text(text, max_width):
     """
-    Разбивает текст на строки заданной максимальной ширины,
-    вставляя \n только вместо пробелов (не разрывая слова).
+    Splits the text into lines of a given maximum width,
+    inserting \n only at spaces (without breaking words).
     
-    :param text: Исходная строка
-    :param max_width: Максимальная ширина строки (N символов)
-    :return: Строка с переносами
+    :param text: Input string
+    :param max_width: Maximum line width (N characters)
+    :return: String with line breaks
     """
     if not text or max_width <= 0:
         return text
     
-    # Если строка короче максимальной ширины, возвращаем как есть
     if len(text) <= max_width:
         return text
     
@@ -23,18 +22,18 @@ def wrap_text(text, max_width):
     current_line = ""
     
     for word in words:
-        # Если добавление слова превысит максимальную ширину
+        # If adding the word exceeds the maximum width
         if current_line and len(current_line) + 1 + len(word) > max_width:
             lines.append(current_line)
             current_line = word
         else:
-            # Добавляем слово к текущей строке
+            # Add the word to the current line
             if current_line:
                 current_line += " " + word
             else:
                 current_line = word
     
-    # Добавляем последнюю строку
+    # Add the last line
     if current_line:
         lines.append(current_line)
     
@@ -75,8 +74,3 @@ def draw_table(headers, data):
         wrapped_row = [wrap_text(str(cell), 80) for cell in txt]
         table.add_row(wrapped_row)
     return table
-
-
-
-
-# print_command_list()

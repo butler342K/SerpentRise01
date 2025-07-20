@@ -181,9 +181,11 @@ class AddressBook(UserDict):
     def find(self, name):
         if not isinstance(name, str) or not name.strip():
             raise ValueError("Name must be a non-empty string.")
-        if name.strip() not in self.data:
-            return None
-        return self.data[name.strip()]
+        name_lower = name.strip().lower()
+        for record_name, record in self.data.items():
+            if record_name.lower() == name_lower:
+                return record
+        return None
     def delete(self, name):
         if not isinstance(name, str) or not name.strip():
             raise ValueError("Name must be a non-empty string.")
@@ -314,77 +316,21 @@ def show_phone(args, book: AddressBook):
         raise ContactNotFoundError("Contact not found.")
     return record.to_string()  # Show contact info without notes
 
-# @input_error
-# def show_all(book: AddressBook, notes_book: NotesBook):
-#     if not book.data:
-#         print("No contacts available.")
-#         return
-#     print("📗 All contacts: 📗\n")
-#     for name, record in book.data.items():
-#         print(record.to_string(notes_book)) 
-
-# @input_error
-# def show_all(book: AddressBook, notes_book: NotesBook):
-#     if not book.data:
-#         print("No contacts available.")
-#         return
-#     print(f"{Fore.GREEN}\U0001F4D7 All contacts: \U0001F4D7{Fore.RESET}\n")
-#     table = PrettyTable(        vertical_char="│",
-#         horizontal_char="─",
-#         junction_char="┼",
-#         top_junction_char="┬",
-#         bottom_junction_char="┴",
-#         right_junction_char="┤",
-#         left_junction_char="├",
-#         top_right_junction_char="╮",
-#         top_left_junction_char="╭",
-#         bottom_right_junction_char="╯",
-#         bottom_left_junction_char="╰",
-#         hrules=HRuleStyle.ALL,
-#         align="l",)
-#     table.field_names = [
-#         f"{Fore.GREEN}Name{Fore.RESET}",
-#         f"{Fore.YELLOW}Phones{Fore.RESET}",
-#         f"{Fore.YELLOW}Email{Fore.RESET}",
-#         f"{Fore.YELLOW}Birthday{Fore.RESET}",
-#         f"{Fore.YELLOW}Address{Fore.RESET}"
-#     ]
-#     for name, record in book.data.items():
-#         phones = f"{Fore.YELLOW}" + ('\n'.join(p.value for p in record.phones) if record.phones else "-") + f"{Fore.RESET}"
-#         email = f"{Fore.YELLOW}" + (record.email.value if record.email else "-") + f"{Fore.RESET}"
-#         birthday = f"{Fore.YELLOW}" + (record.birthday.value.strftime('%d.%m.%Y') if record.birthday else "-") + f"{Fore.RESET}"
-#         address = f"{Fore.YELLOW}" + (record.address.value if record.address else "-") + f"{Fore.RESET}"
-#         table.add_row([
-#             f"{Fore.GREEN}{name}{Fore.RESET}",
-#             phones,
-#             email,
-#             birthday,
-#             address
-#         ])
-#         table.max_width[0] = 30
-#         table.max_width[1] = 50
-#         table.max_width[2] = 50
-#         table.max_width[3] = 50
-#         table.max_width[4] = 20
-#         table.max_width[5] = 50
-#         table.max_width[6] = 50
-#         table.max_width[7] = 50
-#     print(table)
 
 @input_error
 def show_all(book: AddressBook, notes_book: NotesBook):
     if not book.data:
         print("No contacts available.")
         return
-    print("="*10, f"{Fore.GREEN}\U0001F4D7 All contacts: \U0001F4D7{Fore.RESET}","="*10)
+    print(f"{Fore.GREEN}\U0001F4D7 All contacts: \U0001F4D7{Fore.RESET}")
     headers=[
-        f"{Fore.MAGENTA}Name{Fore.RESET}",
-        f"{Fore.YELLOW}Phones{Fore.RESET}",
-        f"{Fore.YELLOW}Email{Fore.RESET}",
-        f"{Fore.YELLOW}Birthday{Fore.RESET}",
-        f"{Fore.YELLOW}Address{Fore.RESET}",
-        f"{Fore.YELLOW}Notes{Fore.RESET}",
-        f"{Fore.YELLOW}Tags{Fore.RESET}",
+        f"{Fore.LIGHTGREEN_EX}Name{Fore.RESET}",
+        f"{Fore.LIGHTGREEN_EX}Phones{Fore.RESET}",
+        f"{Fore.LIGHTGREEN_EX}Email{Fore.RESET}",
+        f"{Fore.LIGHTGREEN_EX}Birthday{Fore.RESET}",
+        f"{Fore.LIGHTGREEN_EX}Address{Fore.RESET}",
+        f"{Fore.LIGHTGREEN_EX}Notes{Fore.RESET}",
+        f"{Fore.LIGHTGREEN_EX}Tags{Fore.RESET}",
     ]
     data = []
     for name, record in book.data.items():
@@ -402,13 +348,12 @@ def show_all(book: AddressBook, notes_book: NotesBook):
                 tags_list = []
                 for note in notes:
                     tags_list.append(f"{Fore.BLUE} {' '.join(f'#{tag}' for tag in note.tags)}{Fore.RESET}" if note.tags else " - ")
-                    # notes_list.append(f"{Fore.LIGHTBLACK_EX}[{note.id[:8]}]{Fore.RESET} {note.text}")
-                    notes_list.append(f"{note.text}")
+                    notes_list.append(f"📘 {note.text}")
                 note_str = "\n".join(notes_list)
                 tag_str = "\n".join(tags_list)
 
         data.append([
-            f"{Fore.GREEN}{name}{Fore.RESET}",
+            f"{Fore.LIGHTMAGENTA_EX}{name}{Fore.RESET}",
             phones,
             email,
             birthday,
@@ -610,11 +555,29 @@ def handle_add_note(args, book: AddressBook, notes_book: NotesBook):
 
 
 @input_error
-def handle_show_all_notes(contact, notes_book: NotesBook):
-    notes = notes_book.get_notes(contact)
+def handle_show_all_notes(notes_book: NotesBook):
+    notes = notes_book.get_all_notes()
     if not notes:
-        return f"{contact} has no notes."
-    return "\n".join(str(note) for note in notes)
+        return f"The notebook has no notes."
+    print(f"{Fore.GREEN}📘 All notes: 📘{Fore.RESET}")
+    headers=[
+        f"{Fore.LIGHTGREEN_EX}id{Fore.RESET}",
+        f"{Fore.LIGHTGREEN_EX}Name{Fore.RESET}",
+        f"{Fore.LIGHTGREEN_EX}Note{Fore.RESET}",
+        f"{Fore.LIGHTGREEN_EX}Tags{Fore.RESET}",
+    ]
+    data = []
+    for contact, notes_list in notes.items():
+        for note in notes_list:
+            tags = f"{Fore.BLUE} {', '.join(f'#{tag}' for tag in note.tags)}{Fore.RESET}" if note.tags else f"{Fore.LIGHTBLACK_EX}no tags{Fore.RESET}"
+            data.append([
+                f"{Fore.LIGHTBLACK_EX}{note.id[:8]}{Fore.RESET}",
+                f"{Fore.LIGHTMAGENTA_EX}{contact}{Fore.RESET}",
+                f"{note.text}",
+                tags
+            ])
+    table = draw_table(headers, data)
+    return table
 
 @input_error
 def handle_show_notes(args, notes_book: NotesBook):
@@ -630,7 +593,7 @@ def handle_search_notes(args, notes_book):
     found = notes_book.search_by_tag(tag)
     if not found:
         return "No notes found with this tag."
-    return "\n".join(f"{contact}: {note}" for contact, note in found)
+    return "\n".join(f"{Fore.LIGHTMAGENTA_EX}{contact}{Fore.RESET}: {note}" for contact, note in found)
 
 @input_error
 def handle_search_notes_text(args, notes_book):
@@ -751,6 +714,8 @@ def main():
             print(handle_add_note(args, book, notes_book))
         elif command == "show-notes":
             print(handle_show_notes(args, notes_book))
+        elif command == "all-notes":
+            print(handle_show_all_notes(notes_book))
         elif command == "search-notes":
             print(handle_search_notes(args, notes_book))
         elif command == "search-notes-text":

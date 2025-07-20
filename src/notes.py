@@ -37,7 +37,7 @@ class NotesBook:
         results = []
         for contact, notes in self.data.items():
             for note in notes:
-                if tag in note.tags:
+                if tag.lower() in (t.lower() for t in note.tags):
                     results.append((contact, note))
         return results
     
@@ -51,6 +51,10 @@ class NotesBook:
 
     def get_notes(self, contact):
         return self.data.get(contact, [])
+    
+    def get_all_notes(self):
+        """Get all notes from all contacts."""
+        return self.data
         
 def save_data(book, filename="notesbook.pkl"):
     with open(filename, "wb") as f:
